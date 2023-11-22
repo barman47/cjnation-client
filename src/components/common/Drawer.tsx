@@ -57,10 +57,6 @@ const closedMixin = (theme: Theme): CSSObject => ({
     // },
 });
 
-const MenuIconButton = styled(IconButton)(({ theme }) => ({
-
-}));
-
 const DrawerHeader = styled('div')(({ theme }) => ({
     display: 'flex',
     alignItems: 'center',
@@ -149,7 +145,12 @@ const links: HomeLink[] = [
     },
 ];
 
-export default function MiniDrawer() {
+interface Props {
+    handleOpenSignUpModal: () => void;
+    handleOpenSignInModal: () => void;
+}
+
+const AppDrawer: React.FC<Props> = ({ handleOpenSignUpModal, handleOpenSignInModal }: Props) => {
     const dispatch: AppDispatch = useDispatch();
     
     const theme = useTheme();
@@ -201,8 +202,7 @@ export default function MiniDrawer() {
                                 variant="outlined"
                                 color="primary"
                                 size="large"
-                                LinkComponent={Link}
-                                href="/auth/login"
+                                onClick={handleOpenSignInModal}
                             >
                                 Log In
                             </Button>
@@ -288,3 +288,5 @@ export default function MiniDrawer() {
         </Box>
     );
 }
+
+export default AppDrawer;

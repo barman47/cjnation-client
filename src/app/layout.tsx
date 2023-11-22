@@ -5,6 +5,7 @@ import ThemeRegistry from './ThemeRegistry';
 import Header from '@/components/common/Header';
 import AppLayout from './AppLayout';
 import { Providers } from '@/redux/Provider';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 export const metadata: Metadata = {
     title: 'Create Next App',
@@ -30,14 +31,16 @@ export default function RootLayout({
 				<link rel="manifest" href="/site.webmanifest" /> */}
 			</head>
 			<body className={inter.className}>
-				<Providers>
-					<ThemeRegistry options={{ key: 'mui' }}>
-            			<Header />
-						<AppLayout>
-							{children}
-						</AppLayout>
-					</ThemeRegistry>
-				</Providers>
+				<GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}>
+					<Providers>
+						<ThemeRegistry options={{ key: 'mui' }}>
+							<Header />
+							<AppLayout>
+								{children}
+							</AppLayout>
+						</ThemeRegistry>
+					</Providers>
+				</GoogleOAuthProvider>
 			</body>
 		</html>
 	);

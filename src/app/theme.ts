@@ -23,7 +23,9 @@ export const theme = createTheme({
 				root: {
                     color: '#FCFCFC',
 					borderRadius: '50px',
-					textTransform: 'none'
+					textTransform: 'none',
+					paddingBottom: '10px',
+					paddingTop: '10px'
 				},
 
 				outlined: {
