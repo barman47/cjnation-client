@@ -1,5 +1,4 @@
 import { createTheme } from '@mui/material/styles';
-// import localFont from 'next/font/local';
 
 export const PRIMARY_COLOR = '#7E57C2';
 export const SECONDARY_COLOR = '#1C1C1C';
@@ -9,56 +8,6 @@ export const DARK_GREY = '#AAAAAA';
 export const WHITE = '#FFFFFF';
 export const TEXT_COLOR = '#636363';
 export const LINK_COLOR = '#2973b7';
-
-// const metropolis = localFont({
-// 	src: [
-// 		{
-// 			path: './font/Metropolis-Black.otf',
-// 			weight: '300',
-// 			style: 'normal'
-// 		},
-// 		{
-// 			path: './font/Metropolis-Bold.otf',
-// 			weight: '700',
-// 			style: 'normal'
-// 		},
-// 		{
-// 			path: './font/Metropolis-ExtraBold.otf',
-// 			weight: '800',
-// 			style: 'normal'
-// 		},
-// 		{
-// 			path: './font/Metropolis-ExtraLight.otf',
-// 			weight: '200',
-// 			style: 'normal'
-// 		},
-// 		{
-// 			path: './font/Metropolis-Light.otf',
-// 			weight: '300',
-// 			style: 'normal'
-// 		},
-// 		{
-// 			path: './font/Metropolis-Medium.otf',
-// 			weight: '500',
-// 			style: 'normal'
-// 		},
-// 		{
-// 			path: './font/Metropolis-Regular.otf',
-// 			weight: '400',
-// 			style: 'normal'
-// 		},
-// 		{
-// 			path: './font/Metropolis-SemiBold.otf',
-// 			weight: '600',
-// 			style: 'normal'
-// 		},
-// 		{
-// 			path: './font/Metropolis-Thin.otf',
-// 			weight: '300',
-// 			style: 'normal'
-// 		},
-// 	]
-// });
 
 export const theme = createTheme({
 	components: {
@@ -72,19 +21,12 @@ export const theme = createTheme({
 			styleOverrides: {
 				root: {
                     color: '#FCFCFC',
-					borderRadius: '12px',
-					textTransform: 'uppercase',
-					paddingBottom: '12px',
-					paddingTop: '12px'
+					borderRadius: '50px',
+					textTransform: 'none'
 				},
 
 				outlined: {
-					color: PRIMARY_COLOR,
-					borderWidth: '2px',
-
-					'&:hover': {
-						borderWidth: '2px'
-					}
+					color: PRIMARY_COLOR
 				},
 
 				text: {
@@ -97,7 +39,7 @@ export const theme = createTheme({
 			styleOverrides: {
 				root:{
 					backgroundColor: GREY,
-					borderRadius: '5px'
+					borderRadius: '15px'
 					// paddingBottom: '1px',
 					// paddingTop: '1px',
 
@@ -147,7 +89,7 @@ export const theme = createTheme({
 	},
 
 	typography: {
-		// fontFamily: metropolis.style.fontFamily,
+		fontFamily: 'inherit',
 		fontWeightLight: 300,
 		fontWeightRegular: 400,
 		fontWeightMedium: 500,

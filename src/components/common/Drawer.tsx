@@ -2,38 +2,48 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import { useDispatch, useSelector } from 'react-redux';
 import { styled, useTheme, Theme, CSSObject } from '@mui/material/styles';
+import { Menu, HomeOutline, AccountCircleOutline, TrayArrowDown, PencilOutline } from 'mdi-material-ui';
 import {
-    Box
+    Box,
+    Button,
+    CssBaseline,
+    Divider,
+    IconButton,
+    List,
+    ListItem,
+    ListItemButton,
+    ListItemIcon,
+    ListItemText,
+    Toolbar
 } from '@mui/material';
+
 import MuiDrawer from '@mui/material/Drawer';
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
-import List from '@mui/material/List';
-import CssBaseline from '@mui/material/CssBaseline';
-import Typography from '@mui/material/Typography';
-import Divider from '@mui/material/Divider';
-import IconButton from '@mui/material/IconButton';
-import { ChevronLeft, ChevronRight, Menu, Inbox, Mail } from 'mdi-material-ui';
-import ListItem from '@mui/material/ListItem';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import ListItemText from '@mui/material/ListItemText';
-import { CLOSED_DRAWER_WIDTH, DRAWER_WIDTH } from '@/utils/constants';
+
+import { CLOSED_DRAWER_WIDTH, OPEN_DRAWER_WIDTH } from '@/utils/constants';
+import { selectIsDrawerOpen, toggleDrawer } from '@/redux/features/appSlice';
+import { AppDispatch } from '@/redux/store';
+import SearchBox from './SearchBox';
+
+interface AppBarProps extends MuiAppBarProps {
+    open?: boolean;
+}
 
 const openedMixin = (theme: Theme): CSSObject => ({
-    width: DRAWER_WIDTH,
+    width: OPEN_DRAWER_WIDTH,
     transition: theme.transitions.create('width', {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.enteringScreen,
+        easing: theme.transitions.easing.sharp,
+        duration: theme.transitions.duration.enteringScreen,
     }),
     overflowX: 'hidden',
 });
 
 const closedMixin = (theme: Theme): CSSObject => ({
     transition: theme.transitions.create('width', {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.leavingScreen,
+        easing: theme.transitions.easing.sharp,
+        duration: theme.transitions.duration.leavingScreen,
     }),
     overflowX: 'hidden',
     [theme.breakpoints.up('sm')]: {
@@ -54,31 +64,37 @@ const DrawerHeader = styled('div')(({ theme }) => ({
     ...theme.mixins.toolbar,
 }));
 
-interface AppBarProps extends MuiAppBarProps {
-    open?: boolean;
-}
+const DrawerToolBar = styled(Toolbar)(({ theme }) => ({
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+}));
 
 const AppBar = styled(MuiAppBar, {
     shouldForwardProp: (prop) => prop !== 'open',
     })<AppBarProps>(({ theme, open }) => ({
         zIndex: theme.zIndex.drawer + 1,
         transition: theme.transitions.create(['width', 'margin'], {
-        easing: theme.transitions.easing.sharp,
-        duration: theme.transitions.duration.leavingScreen,
-    }),
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.leavingScreen,
+        }),
     ...(open && {
-            marginLeft: DRAWER_WIDTH,
-            width: `calc(100% - ${DRAWER_WIDTH}px)`,
-            transition: theme.transitions.create(['width', 'margin'], {
+        marginLeft: OPEN_DRAWER_WIDTH,
+        width: `calc(100% - ${OPEN_DRAWER_WIDTH}px)`,
+        transition: theme.transitions.create(['width', 'margin'], {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.enteringScreen,
         }),
     }),
+    backgroundColor: 'transparent',
+    borderBottom: `1px solid rgba(0, 0, 0, 0.12)`,
+    boxShadow: 'none'
 }));
 
 const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' })(
   ({ theme, open }) => ({
-    width: DRAWER_WIDTH,
+    width: OPEN_DRAWER_WIDTH,
     flexShrink: 0,
     whiteSpace: 'nowrap',
     boxSizing: 'border-box',
@@ -92,48 +108,100 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
     })})
 );
 
-export default function MiniDrawer() {
-  const theme = useTheme();
-  const [open, setOpen] = React.useState(false);
+interface HomeLink {
+    icon: React.ReactElement;
+    text: string;
+    url: string;
+}
 
-    const toggleDrawer = () => {
-        setOpen(prev => !prev);
+const links: HomeLink[] = [
+    {
+        icon: <HomeOutline />,
+        text: 'Home',
+        url: '/'
+    },
+    {
+        icon: <PencilOutline />,
+        text: 'Write Post',
+        url: '/'
+    },
+    {
+        icon: <TrayArrowDown />,
+        text: 'Downloads',
+        url: '/'
+    },
+    {
+        icon: <AccountCircleOutline />,
+        text: 'Account',
+        url: '/'
+    },
+];
+
+export default function MiniDrawer() {
+    const dispatch: AppDispatch = useDispatch();
+    
+    const theme = useTheme();
+    const open = useSelector(selectIsDrawerOpen);
+
+    const handleToggleDrawer = () => {
+        dispatch(toggleDrawer());
     };
 
     return (
         <Box sx={{ display: 'flex' }}>
-        <CssBaseline />
-            <AppBar position="fixed" open={open}>
-                <Toolbar>
-                <IconButton
-                    color="inherit"
-                    aria-label="open drawer"
-                    onClick={toggleDrawer}
-                    edge="start"
-                    sx={{
-                    marginRight: 5,
-                    ...(open && { display: 'none' }),
-                    }}
-                >
-                    <Menu />
-                </IconButton>
-                <Typography variant="h6" noWrap component="div">
-                    Mini variant drawer
-                </Typography>
-                </Toolbar>
+            <CssBaseline />
+            <AppBar component="header" position="fixed" open={open}>
+                <DrawerToolBar>
+                    <IconButton
+                        color="secondary"
+                        aria-label="open drawer"
+                        onClick={handleToggleDrawer}
+                        edge="start"
+                        sx={{
+                            marginRight: theme.spacing(5),
+                        }}
+                    >
+                        <Menu />
+                    </IconButton>
+                    <SearchBox 
+                        placeholder="Find what you are looking for"
+                    />
+                    <Box component="div">
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            size="large"
+                            sx={{ marginRight: 5 }}
+                            LinkComponent={Link}
+                            href="/"
+                        >
+                            Start Writing
+                        </Button>
+                        <Button
+                            variant="outlined"
+                            color="primary"
+                            size="large"
+                            LinkComponent={Link}
+                            href="/auth/login"
+                        >
+                            Log In
+                        </Button>
+                    </Box>  
+                </DrawerToolBar>
             </AppBar>
             <Drawer variant="permanent" open={open}>
                 <DrawerHeader>
-                <IconButton onClick={toggleDrawer}>
-                    {theme.direction === 'rtl' ? <ChevronRight /> : <ChevronLeft />}
-                </IconButton>
+                {/* <IconButton onClick={handleToggleDrawer}>
+                    {!open && <ChevronRight /> }
+                </IconButton> */}
                 </DrawerHeader>
                 <Divider />
                 <List>
-                    {['Inbox', 'Starred', 'Send email', 'Drafts'].map((text, index) => (
-                        <Link href="/" key={text}>
-                            <ListItem disablePadding sx={{ display: 'block' }}>
+                    {links.map((item: HomeLink) => (
+                        <ListItem key={item.text} disablePadding sx={{ display: 'block' }}>
                             <ListItemButton
+                                LinkComponent={Link}
+                                href={item.url}
                                 sx={{
                                     minHeight: 48,
                                     justifyContent: open ? 'initial' : 'center',
@@ -141,18 +209,17 @@ export default function MiniDrawer() {
                                 }}
                             >
                                 <ListItemIcon
-                                sx={{
-                                    minWidth: 0,
-                                    mr: open ? 3 : 'auto',
-                                    justifyContent: 'center',
-                                }}
+                                    sx={{
+                                        minWidth: 0,
+                                        mr: open ? 3 : 'auto',
+                                        justifyContent: 'center',
+                                    }}
                                 >
-                                {index % 2 === 0 ? <Inbox /> : <Mail />}
+                                    {item.icon}
                                 </ListItemIcon>
-                                <ListItemText primary={text} sx={{ opacity: open ? 1 : 0 }} />
+                                <ListItemText primary={item.text} sx={{ opacity: open ? 1 : 0 }} />
                             </ListItemButton>
-                            </ListItem>
-                        </Link>
+                        </ListItem>
                     ))}
                 </List>
             </Drawer>
