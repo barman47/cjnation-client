@@ -24,7 +24,7 @@ import MuiDrawer from '@mui/material/Drawer';
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
 
 import { CLOSED_DRAWER_WIDTH, OPEN_DRAWER_WIDTH } from '@/utils/constants';
-import { selectIsDrawerOpen, toggleDrawer } from '@/redux/features/appSlice';
+import { closeDrawer, selectIsDrawerOpen, toggleDrawer } from '@/redux/features/appSlice';
 import { AppDispatch } from '@/redux/store';
 import SearchBox from './SearchBox';
 import { LIGHT_GREY, WHITE } from '@/app/theme';
@@ -57,6 +57,10 @@ const closedMixin = (theme: Theme): CSSObject => ({
     // },
 });
 
+const MenuIconButton = styled(IconButton)(({ theme }) => ({
+
+}));
+
 const DrawerHeader = styled('div')(({ theme }) => ({
     display: 'flex',
     alignItems: 'center',
@@ -70,7 +74,12 @@ const DrawerToolBar = styled(Toolbar)(({ theme }) => ({
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center'
+    alignItems: 'center',
+
+    [theme.breakpoints.down('sm')]: {
+        justifyContent: 'flex-start',
+        gap: theme.spacing(2)
+    }
 }));
 
 const AppBar = styled(MuiAppBar, {
@@ -92,7 +101,7 @@ const AppBar = styled(MuiAppBar, {
     backgroundColor: WHITE,
     borderBottom: `1px solid ${LIGHT_GREY}`,
     boxShadow: 'none',
-    // padding: theme.spacing(1, 0)
+    padding: theme.spacing(1, 0)
 }));
 
 const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' })(
@@ -147,86 +156,135 @@ export default function MiniDrawer() {
     const matches = useMediaQuery(theme.breakpoints.down('sm'));
     const open = useSelector(selectIsDrawerOpen);
 
-    const handleToggleDrawer = () => {
+    const handleToggleDrawer = (event: React.KeyboardEvent | React.MouseEvent) => {
+        if (event.type === 'keydown' &&((event as React.KeyboardEvent).key === 'Tab' || (event as React.KeyboardEvent).key === 'Shift')) {
+            return;
+        }
         dispatch(toggleDrawer());
     };
+
+    React.useEffect(() => {
+        if (matches) {
+            dispatch(closeDrawer());
+        }
+    }, [dispatch, matches]);
 
     return (
         <Box sx={{ display: 'flex' }}>
             <CssBaseline />
-            <AppBar component="header" position="fixed" open={open}>
+            <AppBar component="header" position="fixed" open={matches ? false : open}>
                 <DrawerToolBar>
                     <IconButton
                         color="secondary"
                         aria-label="open drawer"
                         onClick={handleToggleDrawer}
                         edge="start"
-                        sx={{
-                            marginRight: theme.spacing(5),
-                        }}
                     >
                         <Menu />
                     </IconButton>
                     <SearchBox 
                         placeholder="Find what you are looking for"
                     />
-                    <Box component="div">
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            size="large"
-                            sx={{ marginRight: 5 }}
-                            LinkComponent={Link}
-                            href="/"
-                        >
-                            Start Writing
-                        </Button>
-                        <Button
-                            variant="outlined"
-                            color="primary"
-                            size="large"
-                            LinkComponent={Link}
-                            href="/auth/login"
-                        >
-                            Log In
-                        </Button>
-                    </Box>  
+                    {!matches && 
+                        <Box component="div">
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                size="large"
+                                sx={{ marginRight: 5 }}
+                                LinkComponent={Link}
+                                href="/"
+                            >
+                                Start Writing
+                            </Button>
+                            <Button
+                                variant="outlined"
+                                color="primary"
+                                size="large"
+                                LinkComponent={Link}
+                                href="/auth/login"
+                            >
+                                Log In
+                            </Button>
+                        </Box>
+                    }
                 </DrawerToolBar>
             </AppBar>
-            <Drawer variant={matches ? 'temporary' : 'permanent'} open={open}>
-                <DrawerHeader>
-                {/* <IconButton onClick={handleToggleDrawer}>
-                    {!open && <ChevronRight /> }
-                </IconButton> */}
-                </DrawerHeader>
-                <Divider />
-                <List>
-                    {links.map((item: HomeLink) => (
-                        <ListItem key={item.text} disablePadding sx={{ display: 'block' }}>
-                            <ListItemButton
-                                LinkComponent={Link}
-                                href={item.url}
-                                sx={{
-                                    minHeight: 48,
-                                    justifyContent: open ? 'initial' : 'center',
-                                    px: 2.5,
-                                }}
-                            >
-                                <ListItemIcon
+            {matches ?
+                <MuiDrawer
+                    anchor="left"
+                    open={open}
+                    onClose={handleToggleDrawer}
+                >
+                    <DrawerHeader>
+                    {/* <IconButton onClick={handleToggleDrawer}>
+                        {!open && <ChevronRight /> }
+                    </IconButton> */}
+                    </DrawerHeader>
+                    <Divider />
+                    <List>
+                        {links.map((item: HomeLink) => (
+                            <ListItem key={item.text} disablePadding sx={{ display: 'block' }}>
+                                <ListItemButton
+                                    LinkComponent={Link}
+                                    href={item.url}
                                     sx={{
-                                        minWidth: 0,
-                                        mr: open ? 3 : 'auto',
-                                        justifyContent: 'center',
+                                        minHeight: 48,
+                                        justifyContent: open ? 'initial' : 'center',
+                                        px: 2.5,
                                     }}
                                 >
-                                    {item.icon}
-                                </ListItemIcon>
-                                <ListItemText primary={item.text} sx={{ opacity: open ? 1 : 0 }} />
-                            </ListItemButton>
-                        </ListItem>
-                    ))}
-                </List>
-            </Drawer>
+                                    <ListItemIcon
+                                        sx={{
+                                            minWidth: 0,
+                                            mr: 3,
+                                            justifyContent: 'center',
+                                        }}
+                                    >
+                                        {item.icon}
+                                    </ListItemIcon>
+                                    <ListItemText primary={item.text} />
+                                </ListItemButton>
+                            </ListItem>
+                        ))}
+                    </List>
+                </MuiDrawer>
+                :
+                <Drawer variant={matches ? 'temporary' : 'permanent'} open={open} anchor="left">
+                    <DrawerHeader>
+                    {/* <IconButton onClick={handleToggleDrawer}>
+                        {!open && <ChevronRight /> }
+                    </IconButton> */}
+                    </DrawerHeader>
+                    <Divider />
+                    <List>
+                        {links.map((item: HomeLink) => (
+                            <ListItem key={item.text} disablePadding sx={{ display: 'block' }}>
+                                <ListItemButton
+                                    LinkComponent={Link}
+                                    href={item.url}
+                                    sx={{
+                                        minHeight: 48,
+                                        justifyContent: open ? 'initial' : 'center',
+                                        px: 2.5,
+                                    }}
+                                >
+                                    <ListItemIcon
+                                        sx={{
+                                            minWidth: 0,
+                                            mr: open ? 3 : 'auto',
+                                            justifyContent: 'center',
+                                        }}
+                                    >
+                                        {item.icon}
+                                    </ListItemIcon>
+                                    <ListItemText primary={item.text} sx={{ opacity: open ? 1 : 0 }} />
+                                </ListItemButton>
+                            </ListItem>
+                        ))}
+                    </List>
+                </Drawer>
+            }
         </Box>
     );
 }

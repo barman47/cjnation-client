@@ -10,7 +10,11 @@ const useStyles = makeStyles()((theme: Theme) => ({
     root: {
         '& .MuiOutlinedInput-root': {
             borderRadius: '50px',
-            width: theme.spacing(50)
+            width: theme.spacing(50),
+
+            [theme.breakpoints.down('sm')]: {
+                width: '100%'
+            }
         }
     }
 }));

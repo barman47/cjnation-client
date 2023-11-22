@@ -29,6 +29,10 @@ export const app = createSlice({
     name: 'app',
     initialState,
     reducers: {
+        closeDrawer: (state) => {
+            state.drawerOpen = false;
+        },
+
         toggleDrawer: (state) => {
             state.drawerOpen = !state.drawerOpen;
         },
@@ -52,6 +56,7 @@ export const app = createSlice({
 
 export const {
     clearToast,
+    closeDrawer,
     setToast,
     toggleDrawer
 } = app.actions;

@@ -2,13 +2,17 @@
 
 import { 
     Chip,
-    Stack
+    Stack,
+    Theme
  } from '@mui/material';
  import { makeStyles } from 'tss-react/mui';
 
- const useStyles = makeStyles()(() => ({
+ const useStyles = makeStyles()((theme: Theme) => ({
     root: {
-        overflowX: 'scroll'
+        marginBottom: theme.spacing(3),
+        overflowX: 'scroll',
+        whiteSpace: 'nowrap', // Prevents the content from wrapping to the next line
+        width: '100%', // Set a fixed width or adjust as necessary
     }
  }));
 

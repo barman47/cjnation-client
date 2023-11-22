@@ -22,7 +22,7 @@ const useStyles = makeStyles()((theme: Theme) => ({
         fontWeight: 600,
         display: '-webkit-box',
         overflow: 'hidden',
-        '-webkit-box-orient': 'vertical',
+        WebkitBoxOrient: 'vertical',
         WebkitLineClamp: 1
     },
 
