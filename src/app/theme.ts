@@ -5,6 +5,7 @@ export const SECONDARY_COLOR = '#1C1C1C';
 export const OFF_BLACK = '#605C5C';
 export const GREY = '#f6f6f6';
 export const DARK_GREY = '#AAAAAA';
+export const LIGHT_GREY = 'rgba(0, 0, 0, 0.12)';
 export const WHITE = '#FFFFFF';
 export const TEXT_COLOR = '#636363';
 export const LINK_COLOR = '#2973b7';

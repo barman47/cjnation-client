@@ -16,7 +16,8 @@ import {
     ListItemButton,
     ListItemIcon,
     ListItemText,
-    Toolbar
+    Toolbar,
+    useMediaQuery
 } from '@mui/material';
 
 import MuiDrawer from '@mui/material/Drawer';
@@ -26,6 +27,7 @@ import { CLOSED_DRAWER_WIDTH, OPEN_DRAWER_WIDTH } from '@/utils/constants';
 import { selectIsDrawerOpen, toggleDrawer } from '@/redux/features/appSlice';
 import { AppDispatch } from '@/redux/store';
 import SearchBox from './SearchBox';
+import { LIGHT_GREY, WHITE } from '@/app/theme';
 
 interface AppBarProps extends MuiAppBarProps {
     open?: boolean;
@@ -87,9 +89,10 @@ const AppBar = styled(MuiAppBar, {
             duration: theme.transitions.duration.enteringScreen,
         }),
     }),
-    backgroundColor: 'transparent',
-    borderBottom: `1px solid rgba(0, 0, 0, 0.12)`,
-    boxShadow: 'none'
+    backgroundColor: WHITE,
+    borderBottom: `1px solid ${LIGHT_GREY}`,
+    boxShadow: 'none',
+    // padding: theme.spacing(1, 0)
 }));
 
 const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' })(
@@ -141,6 +144,7 @@ export default function MiniDrawer() {
     const dispatch: AppDispatch = useDispatch();
     
     const theme = useTheme();
+    const matches = useMediaQuery(theme.breakpoints.down('sm'));
     const open = useSelector(selectIsDrawerOpen);
 
     const handleToggleDrawer = () => {
@@ -189,7 +193,7 @@ export default function MiniDrawer() {
                     </Box>  
                 </DrawerToolBar>
             </AppBar>
-            <Drawer variant="permanent" open={open}>
+            <Drawer variant={matches ? 'temporary' : 'permanent'} open={open}>
                 <DrawerHeader>
                 {/* <IconButton onClick={handleToggleDrawer}>
                     {!open && <ChevronRight /> }
