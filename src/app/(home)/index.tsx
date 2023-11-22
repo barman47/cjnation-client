@@ -1,5 +1,6 @@
 import { Divider, Grid } from '@mui/material';
 import Post from './Post';
+import FeaturedPost from './FeaturedPost';
 
 const Home:React.FC<{}> = () => {
     return (
@@ -15,7 +16,11 @@ const Home:React.FC<{}> = () => {
                 <Divider orientation="vertical" />
             </Grid>
             <Grid item xs={12} lg={3.5}>
-                <h4>Featured Posts</h4>
+                <FeaturedPost />
+                <FeaturedPost />
+                <FeaturedPost />
+                <FeaturedPost />
+                <FeaturedPost />
             </Grid>
         </Grid>
     );
