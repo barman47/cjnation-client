@@ -2,38 +2,56 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import { useDispatch, useSelector } from 'react-redux';
 import { styled, useTheme, Theme, CSSObject } from '@mui/material/styles';
+import { HomeOutline, AccountCircleOutline, Menu as MenuIcon, TrayArrowDown, PencilOutline, Logout } from 'mdi-material-ui';
 import {
-    Box
+    Avatar,
+    Box,
+    Button,
+    CssBaseline,
+    Divider,
+    IconButton,
+    List,
+    ListItem,
+    ListItemButton,
+    ListItemIcon,
+    ListItemText,
+    Menu,
+    MenuItem,
+    Link as MuiLink,
+    Toolbar,
+    Tooltip,
+    useMediaQuery
 } from '@mui/material';
+
 import MuiDrawer from '@mui/material/Drawer';
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
-import List from '@mui/material/List';
-import CssBaseline from '@mui/material/CssBaseline';
-import Typography from '@mui/material/Typography';
-import Divider from '@mui/material/Divider';
-import IconButton from '@mui/material/IconButton';
-import { ChevronLeft, ChevronRight, Menu, Inbox, Mail } from 'mdi-material-ui';
-import ListItem from '@mui/material/ListItem';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import ListItemText from '@mui/material/ListItemText';
-import { CLOSED_DRAWER_WIDTH, DRAWER_WIDTH } from '@/utils/constants';
+
+import { CLOSED_DRAWER_WIDTH, OPEN_DRAWER_WIDTH } from '@/utils/constants';
+import { closeDrawer, selectIsDrawerOpen, toggleDrawer } from '@/redux/features/appSlice';
+import { AppDispatch } from '@/redux/store';
+import SearchBox from './SearchBox';
+import { LIGHT_GREY, PRIMARY_COLOR, WHITE } from '@/app/theme';
+import { selectIsUserAuthenticated, selectUser } from '@/redux/features/authSlice';
+
+interface AppBarProps extends MuiAppBarProps {
+    open?: boolean;
+}
 
 const openedMixin = (theme: Theme): CSSObject => ({
-    width: DRAWER_WIDTH,
+    width: OPEN_DRAWER_WIDTH,
     transition: theme.transitions.create('width', {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.enteringScreen,
+        easing: theme.transitions.easing.sharp,
+        duration: theme.transitions.duration.enteringScreen,
     }),
     overflowX: 'hidden',
 });
 
 const closedMixin = (theme: Theme): CSSObject => ({
     transition: theme.transitions.create('width', {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.leavingScreen,
+        easing: theme.transitions.easing.sharp,
+        duration: theme.transitions.duration.leavingScreen,
     }),
     overflowX: 'hidden',
     [theme.breakpoints.up('sm')]: {
@@ -54,31 +72,43 @@ const DrawerHeader = styled('div')(({ theme }) => ({
     ...theme.mixins.toolbar,
 }));
 
-interface AppBarProps extends MuiAppBarProps {
-    open?: boolean;
-}
+const DrawerToolBar = styled(Toolbar)(({ theme }) => ({
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+
+    [theme.breakpoints.down('sm')]: {
+        justifyContent: 'flex-start',
+        gap: theme.spacing(2)
+    }
+}));
 
 const AppBar = styled(MuiAppBar, {
     shouldForwardProp: (prop) => prop !== 'open',
     })<AppBarProps>(({ theme, open }) => ({
         zIndex: theme.zIndex.drawer + 1,
         transition: theme.transitions.create(['width', 'margin'], {
-        easing: theme.transitions.easing.sharp,
-        duration: theme.transitions.duration.leavingScreen,
-    }),
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.leavingScreen,
+        }),
     ...(open && {
-            marginLeft: DRAWER_WIDTH,
-            width: `calc(100% - ${DRAWER_WIDTH}px)`,
-            transition: theme.transitions.create(['width', 'margin'], {
+        marginLeft: OPEN_DRAWER_WIDTH,
+        width: `calc(100% - ${OPEN_DRAWER_WIDTH}px)`,
+        transition: theme.transitions.create(['width', 'margin'], {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.enteringScreen,
         }),
     }),
+    backgroundColor: WHITE,
+    borderBottom: `1px solid ${LIGHT_GREY}`,
+    boxShadow: 'none',
+    padding: theme.spacing(1, 0)
 }));
 
 const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' })(
   ({ theme, open }) => ({
-    width: DRAWER_WIDTH,
+    width: OPEN_DRAWER_WIDTH,
     flexShrink: 0,
     whiteSpace: 'nowrap',
     boxSizing: 'border-box',
@@ -92,70 +122,237 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
     })})
 );
 
-export default function MiniDrawer() {
-  const theme = useTheme();
-  const [open, setOpen] = React.useState(false);
+const AccountMenuItem = styled(MenuItem)(({ theme }) => ({
+    color: theme.palette.secondary.main
+}));
 
-    const toggleDrawer = () => {
-        setOpen(prev => !prev);
+const LogoutMenuItem = styled(MenuItem)(({ theme }) => ({
+    color: theme.palette.error.main
+}));
+
+interface HomeLink {
+    icon: React.ReactElement;
+    text: string;
+    url: string;
+}
+
+const links: HomeLink[] = [
+    {
+        icon: <HomeOutline />,
+        text: 'Home',
+        url: '/'
+    },
+    {
+        icon: <PencilOutline />,
+        text: 'Write Post',
+        url: '/'
+    },
+    {
+        icon: <TrayArrowDown />,
+        text: 'Downloads',
+        url: '/'
+    },
+    {
+        icon: <AccountCircleOutline />,
+        text: 'Account',
+        url: '/'
+    },
+];
+
+interface Props {
+    handleOpenSignUpModal: () => void;
+    handleOpenSignInModal: () => void;
+}
+
+const AppDrawer: React.FC<Props> = ({ handleOpenSignUpModal, handleOpenSignInModal }: Props) => {
+    const dispatch: AppDispatch = useDispatch();
+
+    const isAuthenticated = useSelector(selectIsUserAuthenticated);
+    const user = useSelector(selectUser);
+    
+    const theme = useTheme();
+    const matches = useMediaQuery(theme.breakpoints.down('sm'));
+    const open = useSelector(selectIsDrawerOpen);
+
+    const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+
+    const menuOpen = Boolean(anchorEl);
+
+    React.useEffect(() => {
+        if (matches) {
+            dispatch(closeDrawer());
+        }
+    }, [dispatch, matches]);
+
+    const handleToggleDrawer = (event: React.KeyboardEvent | React.MouseEvent) => {
+        if (event.type === 'keydown' &&((event as React.KeyboardEvent).key === 'Tab' || (event as React.KeyboardEvent).key === 'Shift')) {
+            return;
+        }
+        dispatch(toggleDrawer());
+    };
+
+    const handleOpenMenu = (event: React.MouseEvent<HTMLElement>) => {
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleCloseMenu = () => {
+        setAnchorEl(null);
     };
 
     return (
         <Box sx={{ display: 'flex' }}>
-        <CssBaseline />
-            <AppBar position="fixed" open={open}>
-                <Toolbar>
-                <IconButton
-                    color="inherit"
-                    aria-label="open drawer"
-                    onClick={toggleDrawer}
-                    edge="start"
-                    sx={{
-                    marginRight: 5,
-                    ...(open && { display: 'none' }),
-                    }}
-                >
-                    <Menu />
-                </IconButton>
-                <Typography variant="h6" noWrap component="div">
-                    Mini variant drawer
-                </Typography>
-                </Toolbar>
-            </AppBar>
-            <Drawer variant="permanent" open={open}>
-                <DrawerHeader>
-                <IconButton onClick={toggleDrawer}>
-                    {theme.direction === 'rtl' ? <ChevronRight /> : <ChevronLeft />}
-                </IconButton>
-                </DrawerHeader>
-                <Divider />
-                <List>
-                    {['Inbox', 'Starred', 'Send email', 'Drafts'].map((text, index) => (
-                        <Link href="/" key={text}>
-                            <ListItem disablePadding sx={{ display: 'block' }}>
-                            <ListItemButton
-                                sx={{
-                                    minHeight: 48,
-                                    justifyContent: open ? 'initial' : 'center',
-                                    px: 2.5,
-                                }}
+            <CssBaseline />
+            <AppBar component="header" position="fixed" open={matches ? false : open}>
+                <DrawerToolBar>
+                    <IconButton
+                        color="secondary"
+                        aria-label="open drawer"
+                        onClick={handleToggleDrawer}
+                        edge="start"
+                    >
+                        <MenuIcon />
+                    </IconButton>
+                    <SearchBox 
+                        placeholder="Find what you are looking for"
+                    />
+                    {(!matches && !isAuthenticated) &&
+                        <Box component="div">
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                size="large"
+                                sx={{ marginRight: 5 }}
+                                LinkComponent={Link}
+                                href="/"
                             >
-                                <ListItemIcon
-                                sx={{
-                                    minWidth: 0,
-                                    mr: open ? 3 : 'auto',
-                                    justifyContent: 'center',
-                                }}
+                                Start Writing
+                            </Button>
+                            <Button
+                                variant="outlined"
+                                color="primary"
+                                size="large"
+                                onClick={handleOpenSignInModal}
+                            >
+                                Log In
+                            </Button>
+                        </Box>
+                    }
+                    {isAuthenticated && 
+                        <>
+                            <Tooltip title="Account" arrow placement="top">
+                                <IconButton
+                                    onClick={handleOpenMenu}
+                                    size="small"
+                                    sx={{ ml: 2 }}
+                                    aria-controls={open ? 'account-menu' : undefined}
+                                    aria-haspopup="true"
+                                    aria-expanded={open ? 'true' : undefined}
                                 >
-                                {index % 2 === 0 ? <Inbox /> : <Mail />}
-                                </ListItemIcon>
-                                <ListItemText primary={text} sx={{ opacity: open ? 1 : 0 }} />
-                            </ListItemButton>
+                                    <Avatar sx={{ width: 32, height: 32, backgroundColor: PRIMARY_COLOR }} src={user.avatar!}>{user.name.charAt(0).toString()}</Avatar>
+                                </IconButton>
+                            </Tooltip>
+                            <Menu
+                                anchorEl={anchorEl}
+                                id="account-menu"
+                                open={menuOpen}
+                                onClose={handleCloseMenu}
+                                onClick={handleCloseMenu}
+                                transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                                anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+                            >
+                                <MuiLink component={Link} href="/dashboard/profile" underline="none">
+                                    <AccountMenuItem onClick={handleCloseMenu}>
+                                        <AccountCircleOutline /> &nbsp;Profile
+                                    </AccountMenuItem>
+                                </MuiLink>
+                                
+                                <Divider />
+
+                                <LogoutMenuItem>
+                                    <Logout /> &nbsp;Logout
+                                </LogoutMenuItem>
+                            </Menu>
+                        </>
+                    }
+                </DrawerToolBar>
+            </AppBar>
+            {matches ?
+                <MuiDrawer
+                    anchor="left"
+                    open={open}
+                    onClose={handleToggleDrawer}
+                >
+                    <DrawerHeader>
+                    {/* <IconButton onClick={handleToggleDrawer}>
+                        {!open && <ChevronRight /> }
+                    </IconButton> */}
+                    </DrawerHeader>
+                    <Divider />
+                    <List>
+                        {links.map((item: HomeLink) => (
+                            <ListItem key={item.text} disablePadding sx={{ display: 'block' }}>
+                                <ListItemButton
+                                    LinkComponent={Link}
+                                    href={item.url}
+                                    sx={{
+                                        minHeight: 48,
+                                        justifyContent: open ? 'initial' : 'center',
+                                        px: 2.5,
+                                    }}
+                                >
+                                    <ListItemIcon
+                                        sx={{
+                                            minWidth: 0,
+                                            mr: 3,
+                                            justifyContent: 'center',
+                                        }}
+                                    >
+                                        {item.icon}
+                                    </ListItemIcon>
+                                    <ListItemText primary={item.text} />
+                                </ListItemButton>
                             </ListItem>
-                        </Link>
-                    ))}
-                </List>
-            </Drawer>
+                        ))}
+                    </List>
+                </MuiDrawer>
+                :
+                <Drawer variant={matches ? 'temporary' : 'permanent'} open={open} anchor="left">
+                    <DrawerHeader>
+                    {/* <IconButton onClick={handleToggleDrawer}>
+                        {!open && <ChevronRight /> }
+                    </IconButton> */}
+                    </DrawerHeader>
+                    <Divider />
+                    <List>
+                        {links.map((item: HomeLink) => (
+                            <ListItem key={item.text} disablePadding sx={{ display: 'block' }}>
+                                <ListItemButton
+                                    LinkComponent={Link}
+                                    href={item.url}
+                                    sx={{
+                                        minHeight: 48,
+                                        justifyContent: open ? 'initial' : 'center',
+                                        px: 2.5,
+                                    }}
+                                >
+                                    <ListItemIcon
+                                        sx={{
+                                            minWidth: 0,
+                                            mr: open ? 3 : 'auto',
+                                            justifyContent: 'center',
+                                        }}
+                                    >
+                                        {item.icon}
+                                    </ListItemIcon>
+                                    <ListItemText primary={item.text} sx={{ opacity: open ? 1 : 0 }} />
+                                </ListItemButton>
+                            </ListItem>
+                        ))}
+                    </List>
+                </Drawer>
+            }
         </Box>
     );
 }
+
+export default AppDrawer;

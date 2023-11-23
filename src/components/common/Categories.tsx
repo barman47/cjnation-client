@@ -2,12 +2,25 @@
 
 import { 
     Chip,
-    Stack
+    Stack,
+    Theme
  } from '@mui/material';
+ import { makeStyles } from 'tss-react/mui';
+
+ const useStyles = makeStyles()((theme: Theme) => ({
+    root: {
+        marginBottom: theme.spacing(3),
+        overflowX: 'scroll',
+        whiteSpace: 'nowrap', // Prevents the content from wrapping to the next line
+        width: '100%', // Set a fixed width or adjust as necessary
+    }
+ }));
 
 const Categories: React.FC<{}> = () => {
+    const { classes } = useStyles();
+
     return (
-        <Stack direction="row" spacing={1}>
+        <Stack direction="row" spacing={1} className={classes.root}>
             <Chip label="Entertainment" variant="filled" color="secondary" onClick={() => {}} />
             <Chip label="Gossips" variant="filled" onClick={() => {}} />
             <Chip label="Football" variant="filled" onClick={() => {}} />
