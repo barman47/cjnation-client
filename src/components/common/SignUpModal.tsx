@@ -78,6 +78,7 @@ const SignUpModal: React.FC<Props> = React.forwardRef<ModalRef, Props>(({ handle
     const handleOpen = () => setOpen(true);
     const handleClose = React.useCallback(() => {
         if (!loading) {
+            resetForm();
             setOpen(false);
         }
     }, [loading]);
@@ -111,9 +112,7 @@ const SignUpModal: React.FC<Props> = React.forwardRef<ModalRef, Props>(({ handle
 
     React.useEffect(() => {
         if (msg) {
-            setEmail('');
-            setName('');
-            setPassword('');
+            resetForm();
             dispatch(setToast({
                 type: 'success',
                 message: msg
@@ -122,6 +121,14 @@ const SignUpModal: React.FC<Props> = React.forwardRef<ModalRef, Props>(({ handle
             handleClose();
         }
     }, [dispatch, handleClose, msg]);
+
+    const resetForm = () => {
+        setName('');
+        setEmail('');
+        setPassword('');
+        setShowPassword(false);
+        setErrors({} as UserRegistrationData);
+    };
 
     const toggleShowPassword = (): void => {
         setShowPassword(!showPassword);
@@ -267,6 +274,7 @@ const SignUpModal: React.FC<Props> = React.forwardRef<ModalRef, Props>(({ handle
                                     type="button"
                                     onClick={showSignInModal}
                                     disabled={loading}
+                                    sx={{ textDecoration: 'underline' }}
                                 >
                                     Sign In
                                 </Button>
