@@ -63,7 +63,8 @@ const UserSchema = new Schema<User>({
         required: true,
         enum: [Role.ADMIN, Role.USER],
         uppercase: true,
-        trim: true
+        trim: true,
+        default: Role.USER
     },
 
     emailVerified: {

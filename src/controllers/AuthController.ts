@@ -49,7 +49,7 @@ export class AuthController {
                 return sendServerResponse(res, { 
                     statusCode: 401,
                     success: false, 
-                    errors: {  }, 
+                    errors: { email: 'Invalid email or password!', password: 'Invalid email or password!' }, 
                     msg: 'Invalid Login Credentials!' 
                 });
             }
@@ -61,7 +61,7 @@ export class AuthController {
                 return sendServerResponse(res, { 
                     statusCode: 401, 
                     success: false,
-                    errors: {  }, 
+                    errors: { email: 'Invalid email or password!', password: 'Invalid email or password!' }, 
                     msg: 'Invalid Login Credentials!' 
                 });
             }
@@ -153,7 +153,7 @@ export class AuthController {
             user.set('emailVerificationToken', undefined);
             user.set('emailVerificationTokenExpiration', undefined);
 
-            return sendTokenResponse(user, 201, `${user.role} created successfully`, res);
+            return sendTokenResponse(user, 201, `User created successfully`, res);
         } catch (err) {
             return returnError(err, res, 500, 'Unable to register user');
         }
