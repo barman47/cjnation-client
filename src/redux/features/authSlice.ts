@@ -7,8 +7,9 @@ import { ApiErrorResponse, ApiResponse, Error, SocialLoginData } from '@/utils/c
 import { User } from '@/interfaces';
 import { RootState } from '../store';
 import { LoginData, UserRegistrationData } from '@/utils/validation/auth';
+import { ResetData } from '@/utils/validation/auth/resetPassword';
 
-export interface AuthError extends Error, User {}
+export interface AuthError extends Error, User { confirmPassword?: string }
 
 const URL = `${process.env.NEXT_PUBLIC_API}/auth`;
 
@@ -112,24 +113,24 @@ export const verifySocialLogin = createAsyncThunk<ApiResponse, SocialLoginData, 
 //     }
 // });
 
-// export const forgotPassword = createAsyncThunk<ApiResponse, string, { rejectValue: ApiErrorResponse }>('auth/forgotPassword', async (email, { rejectWithValue }) => {
-//     try {
-//         const res = await axios.post<ApiResponse>(`${URL}/forgotPassword`, { email });
-//         setAuthToken(res.data.data.token!);
-//         return res.data;
-//     } catch (err) {
-//         return handleError(err, rejectWithValue, 'Failed to send password reset email');
-//     }
-// });
+export const forgotPassword = createAsyncThunk<ApiResponse, string, { rejectValue: ApiErrorResponse }>('auth/forgotPassword', async (email, { rejectWithValue }) => {
+    try {
+        const res = await axios.post<ApiResponse>(`${URL}/forgotPassword`, { email });
+        setAuthToken(res.data.data.token!);
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to send password reset email');
+    }
+});
 
-// export const resetPassword = createAsyncThunk<ApiResponse, ResetData, { rejectValue: ApiErrorResponse }>('auth/resetPassword', async ({ password, confirmPassword, resetToken }, { rejectWithValue }) => {
-//     try {
-//         const res = await axios.patch<ApiResponse>(`${URL}/resetPassword/${resetToken}`, { password, confirmPassword });
-//         return res.data;
-//     } catch (err) {
-//         return handleError(err, rejectWithValue, 'Failed to reset password');
-//     }
-// });
+export const resetPassword = createAsyncThunk<ApiResponse, ResetData, { rejectValue: ApiErrorResponse }>('auth/resetPassword', async ({ password, confirmPassword, resetToken }, { rejectWithValue }) => {
+    try {
+        const res = await axios.patch<ApiResponse>(`${URL}/resetPassword/${resetToken}`, { password, confirmPassword });
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to reset password');
+    }
+});
 
 export const auth = createSlice({
     name: 'auth',
@@ -227,29 +228,29 @@ export const auth = createSlice({
             state.isLoading = false;
         })
 
-        // .addCase(forgotPassword.pending, (state) => {
-        //     state.isLoading = true;
-        // })
-        // .addCase(forgotPassword.fulfilled, (state, action: PayloadAction<ApiResponse>) => {
-        //     state.isLoading = false;
-        //     state.msg = action.payload.msg!;
-        // })
-        // .addCase(forgotPassword.rejected, (state, action) => {
-        //     state.isLoading = false;
-        //     state.error = action.payload?.data;
-        // })
+        .addCase(forgotPassword.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(forgotPassword.fulfilled, (state, action: PayloadAction<ApiResponse>) => {
+            state.isLoading = false;
+            state.msg = action.payload.msg!;
+        })
+        .addCase(forgotPassword.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
 
-        // .addCase(resetPassword.pending, (state) => {
-        //     state.isLoading = true;
-        // })
-        // .addCase(resetPassword.fulfilled, (state, action: PayloadAction<ApiResponse>) => {
-        //     state.isLoading = false;
-        //     state.msg = action.payload.msg!;
-        // })
-        // .addCase(resetPassword.rejected, (state, action) => {
-        //     state.isLoading = false;
-        //     state.error = action.payload?.data;
-        // })
+        .addCase(resetPassword.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(resetPassword.fulfilled, (state, action: PayloadAction<ApiResponse>) => {
+            state.isLoading = false;
+            state.msg = action.payload.msg!;
+        })
+        .addCase(resetPassword.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
 
         // .addCase(updateUser.pending, (state) => {
         //     state.isLoading = true;

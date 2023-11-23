@@ -160,11 +160,10 @@ const links: HomeLink[] = [
 ];
 
 interface Props {
-    handleOpenSignUpModal: () => void;
     handleOpenSignInModal: () => void;
 }
 
-const AppDrawer: React.FC<Props> = ({ handleOpenSignUpModal, handleOpenSignInModal }: Props) => {
+const AppDrawer: React.FC<Props> = ({ handleOpenSignInModal }: Props) => {
     const dispatch: AppDispatch = useDispatch();
 
     const isAuthenticated = useSelector(selectIsUserAuthenticated);
@@ -321,6 +320,36 @@ const AppDrawer: React.FC<Props> = ({ handleOpenSignUpModal, handleOpenSignInMod
                                 </ListItemButton>
                             </ListItem>
                         ))}
+                        {!isAuthenticated && 
+                            <>
+                                <ListItem>
+                                    <Button
+                                        variant="contained"
+                                        color="primary"
+                                        size="large"
+                                        LinkComponent={Link}
+                                        href="/"
+                                        fullWidth
+                                    >
+                                            Start Writing
+                                        </Button>
+                                </ListItem>
+                                <ListItem>
+                                    <Button
+                                        variant="outlined"
+                                        color="primary"
+                                        size="large"
+                                        onClick={() => {
+                                            dispatch(closeDrawer());
+                                            handleOpenSignInModal();
+                                        }}
+                                        fullWidth
+                                    >
+                                        Log In
+                                    </Button>
+                                </ListItem>
+                            </>
+                        }
                     </List>
                 </MuiDrawer>
                 :

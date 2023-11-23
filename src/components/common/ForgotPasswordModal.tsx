@@ -15,6 +15,7 @@ import {
 } from '@mui/material';
 import { makeStyles } from 'tss-react/mui';
 import _ from 'lodash';
+import Validator from 'validator';
 
 import { WHITE } from '@/app/theme';
 import { ModalRef } from '@/utils/constants';
@@ -22,8 +23,7 @@ import { Close } from 'mdi-material-ui';
 
 import { setToast } from '@/redux/features/appSlice';
 import { AppDispatch } from '@/redux/store';
-import { LoginData, validateLoginUser } from '@/utils/validation/auth';
-import { clearError, login, selectAuthError, selectAuthMessage, selectIsAuthLoading, setAuthMessage } from '@/redux/features/authSlice';
+import { clearError, forgotPassword, selectAuthError, selectAuthMessage, selectIsAuthLoading, setAuthMessage } from '@/redux/features/authSlice';
 
 const useStyles = makeStyles()((theme: Theme) => ({
     root: {
@@ -53,6 +53,11 @@ interface Props {
     handleOpenSignInModal: () => void;
 }
 
+interface ForgotPasswordData {
+    email: string;
+    msg?: string;
+}
+
 const ForgotPasswordModal: React.FC<Props> = React.forwardRef<ModalRef, Props>(({ handleOpenSignInModal }: Props, ref: any) => {
     const { classes } = useStyles();
     const dispatch: AppDispatch = useDispatch();
@@ -62,9 +67,8 @@ const ForgotPasswordModal: React.FC<Props> = React.forwardRef<ModalRef, Props>((
     const msg = useSelector(selectAuthMessage);
 
     const [email, setEmail] = React.useState('');
-    const [password, setPassword] = React.useState('');
     const [open, setOpen] = React.useState(false);
-    const [errors, setErrors] = React.useState<LoginData>({} as LoginData);
+    const [errors, setErrors] = React.useState<ForgotPasswordData>({} as ForgotPasswordData);
     
     const handleOpen = () => setOpen(true);
     const handleClose = React.useCallback(() => {
@@ -103,7 +107,7 @@ const ForgotPasswordModal: React.FC<Props> = React.forwardRef<ModalRef, Props>((
     React.useEffect(() => {
         if (msg) {
             setEmail('');
-            setPassword('');
+            setErrors({} as ForgotPasswordData);
             dispatch(setToast({
                 type: 'success',
                 message: msg,
@@ -121,24 +125,26 @@ const ForgotPasswordModal: React.FC<Props> = React.forwardRef<ModalRef, Props>((
 
     const handleSubmit = ( event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        setErrors({} as LoginData);
 
-        const data: LoginData = {
-            email,
-            password
-        };
+        setErrors({} as ForgotPasswordData);
 
-        const { errors, isValid } = validateLoginUser(data);
-
-        if (!isValid) {
+        if (Validator.isEmpty(email)) {
             dispatch(setToast({
                 type: 'error',
-                message: 'Invalid Login Data!'
+                message: 'Invalid email address!'
             }));
-            return setErrors(errors);
+            return setErrors({ email: 'Email address is required!' });
         }
 
-        dispatch(login(data));
+        if (Validator.isEmpty(email)) {
+            dispatch(setToast({
+                type: 'error',
+                message: 'Invalid email address!'
+            }));
+            return setErrors({ email: 'Invalid email address!' });
+        }
+
+        dispatch(forgotPassword(email));
     };
   
     return (

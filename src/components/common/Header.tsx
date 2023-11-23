@@ -30,7 +30,7 @@ const Header: React.FC<{}> = () => {
             <ForgotPasswordModal ref={forgotPasswordModalRef} handleOpenSignInModal={handleOpenSignInModal} />
             <SignInModal ref={signInModalRef} handleOpenForgotPasswordModal={handleOpenForgotPasswordModal} handleOpenSignUpModal={handleOpenSignUpModal} />
             <SignUpModal ref={signUpModalRef} handleOpenSignInModal={handleOpenSignInModal} />
-            <Drawer handleOpenSignInModal={handleOpenSignInModal} handleOpenSignUpModal={handleOpenSignUpModal} />
+            <Drawer handleOpenSignInModal={handleOpenSignInModal} />
         </div>
     );
 };

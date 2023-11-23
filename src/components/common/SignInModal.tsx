@@ -133,7 +133,7 @@ const SignInModal: React.FC<Props> = React.forwardRef<ModalRef, Props>(({ handle
     };
 
     const toggleShowPassword = (): void => {
-        setShowPassword(!showPassword);
+        setShowPassword((prev) => !prev);
     };
 
     const showSignUpModal = () => {
@@ -200,7 +200,7 @@ const SignInModal: React.FC<Props> = React.forwardRef<ModalRef, Props>(({ handle
                         ux_mode="popup"
                         logo_alignment="left"
                         size="large"
-                        width="100"
+                        width="1000"
                     />
                     <Divider>OR</Divider>
                     <form onSubmit={handleSubmit}>
