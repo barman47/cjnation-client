@@ -32,7 +32,8 @@ import { CLOSED_DRAWER_WIDTH, OPEN_DRAWER_WIDTH } from '@/utils/constants';
 import { closeDrawer, selectIsDrawerOpen, toggleDrawer } from '@/redux/features/appSlice';
 import { AppDispatch } from '@/redux/store';
 import SearchBox from './SearchBox';
-import { LIGHT_GREY, WHITE } from '@/app/theme';
+import { LIGHT_GREY, PRIMARY_COLOR, WHITE } from '@/app/theme';
+import { selectIsUserAuthenticated, selectUser } from '@/redux/features/authSlice';
 
 interface AppBarProps extends MuiAppBarProps {
     open?: boolean;
@@ -165,6 +166,9 @@ interface Props {
 
 const AppDrawer: React.FC<Props> = ({ handleOpenSignUpModal, handleOpenSignInModal }: Props) => {
     const dispatch: AppDispatch = useDispatch();
+
+    const isAuthenticated = useSelector(selectIsUserAuthenticated);
+    const user = useSelector(selectUser);
     
     const theme = useTheme();
     const matches = useMediaQuery(theme.breakpoints.down('sm'));
@@ -211,7 +215,7 @@ const AppDrawer: React.FC<Props> = ({ handleOpenSignUpModal, handleOpenSignInMod
                     <SearchBox 
                         placeholder="Find what you are looking for"
                     />
-                    {!matches && 
+                    {(!matches && !isAuthenticated) &&
                         <Box component="div">
                             <Button
                                 variant="contained"
@@ -233,39 +237,43 @@ const AppDrawer: React.FC<Props> = ({ handleOpenSignUpModal, handleOpenSignInMod
                             </Button>
                         </Box>
                     }
-                    {/* <Tooltip title="Account">
-                        <IconButton
-                            onClick={handleOpenMenu}
-                            size="small"
-                            sx={{ ml: 2 }}
-                            aria-controls={open ? 'account-menu' : undefined}
-                            aria-haspopup="true"
-                            aria-expanded={open ? 'true' : undefined}
-                        >
-                            <Avatar sx={{ width: 32, height: 32 }}>M</Avatar>
-                        </IconButton>
-                    </Tooltip>
-                    <Menu
-                        anchorEl={anchorEl}
-                        id="account-menu"
-                        open={menuOpen}
-                        onClose={handleCloseMenu}
-                        onClick={handleCloseMenu}
-                        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-                        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-                    >
-                        <MuiLink component={Link} href="/dashboard/profile" underline="none">
-                            <AccountMenuItem onClick={handleCloseMenu}>
-                                <AccountCircleOutline /> &nbsp;Profile
-                            </AccountMenuItem>
-                        </MuiLink>
-                        
-                        <Divider />
+                    {isAuthenticated && 
+                        <>
+                            <Tooltip title="Account" arrow placement="top">
+                                <IconButton
+                                    onClick={handleOpenMenu}
+                                    size="small"
+                                    sx={{ ml: 2 }}
+                                    aria-controls={open ? 'account-menu' : undefined}
+                                    aria-haspopup="true"
+                                    aria-expanded={open ? 'true' : undefined}
+                                >
+                                    <Avatar sx={{ width: 32, height: 32, backgroundColor: PRIMARY_COLOR }} src={user.avatar!}>{user.name.charAt(0).toString()}</Avatar>
+                                </IconButton>
+                            </Tooltip>
+                            <Menu
+                                anchorEl={anchorEl}
+                                id="account-menu"
+                                open={menuOpen}
+                                onClose={handleCloseMenu}
+                                onClick={handleCloseMenu}
+                                transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                                anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+                            >
+                                <MuiLink component={Link} href="/dashboard/profile" underline="none">
+                                    <AccountMenuItem onClick={handleCloseMenu}>
+                                        <AccountCircleOutline /> &nbsp;Profile
+                                    </AccountMenuItem>
+                                </MuiLink>
+                                
+                                <Divider />
 
-                        <LogoutMenuItem>
-                            <Logout /> &nbsp;Logout
-                        </LogoutMenuItem>
-                    </Menu> */}
+                                <LogoutMenuItem>
+                                    <Logout /> &nbsp;Logout
+                                </LogoutMenuItem>
+                            </Menu>
+                        </>
+                    }
                 </DrawerToolBar>
             </AppBar>
             {matches ?

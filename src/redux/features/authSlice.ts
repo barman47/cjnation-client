@@ -6,7 +6,7 @@ import { handleError } from '@/utils/handleError';
 import { ApiErrorResponse, ApiResponse, Error } from '@/utils/constants';
 import { User } from '@/interfaces';
 import { RootState } from '../store';
-import { UserRegistrationData } from '@/utils/validation/auth';
+import { LoginData, UserRegistrationData } from '@/utils/validation/auth';
 
 export interface AuthError extends Error, User {}
 
@@ -28,25 +28,18 @@ const initialState: AuthState = {
     user: {} as User
 };
 
-// export const login = createAsyncThunk<ApiResponse, LoginData, { rejectValue: ApiErrorResponse }>('auth/login', async ({ email, password }, { rejectWithValue }) => {
-//     try {
-//         const res = await axios.post<ApiResponse>(`${URL}/login`, {
-//             email,
-//             password
-//         });
-
-//         // log the user in
-//         if (res.status === 200) {
-//             // Remove the message and return the rest. Removing the message will prevent it from redirecting to the Auth success page
-//             const { msg, ...rest } = res.data;
-//             setAuthToken(res.data.data.token);
-//             return { ... rest };
-//         }
-//         return res.data;
-//     } catch (err) {
-//         return handleError(err, rejectWithValue, 'Failed to login');
-//     }
-// });
+export const login = createAsyncThunk<ApiResponse, LoginData, { rejectValue: ApiErrorResponse }>('auth/login', async ({ email, password }, { rejectWithValue }) => {
+    try {
+        const res = await axios.post<ApiResponse>(`${URL}/login`, {
+            email,
+            password
+        });
+        setAuthToken(res.data.data.token);
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to login');
+    }
+});
 
 // export const getCurrentUser = createAsyncThunk<ApiResponse, void, { rejectValue: ApiErrorResponse }>('auth/getCurrentUser', async (_, { rejectWithValue }) => {
 //     try {
@@ -158,23 +151,23 @@ export const auth = createSlice({
     },
     extraReducers(builder) {
         builder
-        // .addCase(login.pending, (state) => {
-        //     state.isLoading = true;
-        // })
-        // .addCase(login.fulfilled, (state, action: PayloadAction<ApiResponse>) => {
-        //     state.isLoading = false;
-        //     if (action.payload.data?.user) {
-        //         state.isAuthenticated = true;
-        //         state.user = action.payload.data?.user
-        //     }
-        //     if (action.payload.msg) {
-        //         state.msg = action.payload.msg;
-        //     }
-        // })
-        // .addCase(login.rejected, (state, action) => {
-        //     state.isLoading = false;
-        //     state.error = action.payload?.data;
-        // })
+        .addCase(login.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(login.fulfilled, (state, action: PayloadAction<ApiResponse>) => {
+            state.isLoading = false;
+            if (action.payload.data?.user) {
+                state.isAuthenticated = true;
+                state.user = action.payload.data?.user
+            }
+            if (action.payload.msg) {
+                state.msg = action.payload.msg;
+            }
+        })
+        .addCase(login.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
 
         .addCase(registerUser.pending, (state) => {
             state.isLoading = true;

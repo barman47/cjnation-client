@@ -1,10 +1,11 @@
 'use client';
 
 import * as React from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
     Box,
     Button, 
+    CircularProgress, 
     Divider, 
     IconButton, 
     InputAdornment, 
@@ -16,12 +17,17 @@ import {
     Typography
 } from '@mui/material';
 import { makeStyles } from 'tss-react/mui';
+import { GoogleLogin } from '@react-oauth/google';
+import _ from 'lodash';
+
 import { OFF_BLACK, WHITE } from '@/app/theme';
 import { ModalRef } from '@/utils/constants';
 import { Close, EyeOffOutline, EyeOutline } from 'mdi-material-ui';
-import { GoogleLogin } from '@react-oauth/google';
+
 import { setToast } from '@/redux/features/appSlice';
 import { AppDispatch } from '@/redux/store';
+import { LoginData, validateLoginUser } from '@/utils/validation/auth';
+import { clearError, login, selectAuthError, selectAuthMessage, selectIsAuthLoading, setAuthMessage } from '@/redux/features/authSlice';
 
 const useStyles = makeStyles()((theme: Theme) => ({
     root: {
@@ -44,10 +50,6 @@ const useStyles = makeStyles()((theme: Theme) => ({
 
     subtitle: {
         color: OFF_BLACK
-    },
-
-    text: {
-        
     }
 }));
 
@@ -60,15 +62,22 @@ const SignInModal: React.FC<Props> = React.forwardRef<ModalRef, Props>(({ handle
     const { classes } = useStyles();
     const dispatch: AppDispatch = useDispatch();
 
-    const [name, setName] = React.useState('');
+    const authError = useSelector(selectAuthError);
+    const loading = useSelector(selectIsAuthLoading);
+    const msg = useSelector(selectAuthMessage);
+
     const [email, setEmail] = React.useState('');
     const [password, setPassword] = React.useState('');
     const [open, setOpen] = React.useState(false);
     const [showPassword, setShowPassword] = React.useState(false);
-    // const [errors, setErrors] = React.useState<LoginData>({} as LoginData);
+    const [errors, setErrors] = React.useState<LoginData>({} as LoginData);
     
     const handleOpen = () => setOpen(true);
-    const handleClose = () => setOpen(false);
+    const handleClose = React.useCallback(() => {
+        if(!loading) {
+            setOpen(false)
+        }
+    }, [loading]);
 
     React.useImperativeHandle(ref, () => ({
         openModal: () => {
@@ -80,6 +89,37 @@ const SignInModal: React.FC<Props> = React.forwardRef<ModalRef, Props>(({ handle
         }
     }));
 
+    // Handle API error response
+    React.useEffect(() => {
+        if (!_.isEmpty(authError)) {
+            setErrors(authError);
+            dispatch(setToast({
+                type: 'error',
+                message: authError.msg!
+            }));
+        }
+    }, [authError, dispatch]);
+
+    React.useEffect(() => {
+        if (!_.isEmpty(errors)) {
+            dispatch(clearError());
+        }
+    }, [dispatch, errors]);
+
+    React.useEffect(() => {
+        if (msg) {
+            setEmail('');
+            setPassword('');
+            dispatch(setToast({
+                type: 'success',
+                message: msg,
+                autoHideDuration: 6000
+            }));
+            dispatch(setAuthMessage(null));
+            handleClose();
+        }
+    }, [dispatch, handleClose, msg]);
+
     const toggleShowPassword = (): void => {
         setShowPassword(!showPassword);
     };
@@ -87,6 +127,28 @@ const SignInModal: React.FC<Props> = React.forwardRef<ModalRef, Props>(({ handle
     const showSignUpModal = () => {
         handleOpenSignUpModal();
         handleClose();
+    };
+
+    const handleSubmit = ( event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        setErrors({} as LoginData);
+
+        const data: LoginData = {
+            email,
+            password
+        };
+
+        const { errors, isValid } = validateLoginUser(data);
+
+        if (!isValid) {
+            dispatch(setToast({
+                type: 'error',
+                message: 'Invalid Login Data!'
+            }));
+            return setErrors(errors);
+        }
+
+        dispatch(login(data));
     };
   
     return (
@@ -124,27 +186,29 @@ const SignInModal: React.FC<Props> = React.forwardRef<ModalRef, Props>(({ handle
                         width="1000"
                     />
                     <Divider>OR</Divider>
-                    <form>
+                    <form onSubmit={handleSubmit}>
                         <Stack direction="column" spacing={5}>
                             <TextField 
                                 type="email"
-                                placeholder="Email"
+                                label="Email"
                                 variant="outlined"
                                 value={email}
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                                 fullWidth
-                                // helperText={errors.email}
-                                // error={errors.email ? true : false}
+                                helperText={errors.email}
+                                error={errors.email ? true : false}
+                                disabled={loading}
                             />
                             <TextField 
                                 type={showPassword ? 'text' : 'password'}
-                                placeholder="Password"
+                                label="Password"
                                 variant="outlined"
                                 value={password}
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
                                 fullWidth
-                                // helperText={errors.password || 'Password should be at least 8 characters long'}
-                                // error={errors.password ? true : false}
+                                helperText={errors.password || 'Password should be at least 8 characters long'}
+                                error={errors.password ? true : false}
+                                disabled={loading}
                                 InputProps={{
                                     endAdornment: (
                                         <InputAdornment position="end">
@@ -171,10 +235,11 @@ const SignInModal: React.FC<Props> = React.forwardRef<ModalRef, Props>(({ handle
                                 color="primary"
                                 size="large"
                                 type="submit"
+                                disabled={loading}
                             >
-                                Log In
+                                {loading ? <><CircularProgress />&nbsp;&nbsp;One Moment . . .</> : 'Log In'}
                             </Button>
-                            <Typography variant="body2" component="small" className={classes.text}>
+                            <Typography variant="body2" component="small">
                                 Don&#39;t have an account?
                                 <Button
                                     variant="text"
@@ -182,6 +247,7 @@ const SignInModal: React.FC<Props> = React.forwardRef<ModalRef, Props>(({ handle
                                     size="small"
                                     type="button"
                                     onClick={showSignUpModal}
+                                    disabled={loading}
                                 >
                                     Sign Up
                                 </Button>

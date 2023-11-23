@@ -49,10 +49,6 @@ const useStyles = makeStyles()((theme: Theme) => ({
 
     subtitle: {
         color: OFF_BLACK
-    },
-
-    text: {
-        
     }
 }));
 
@@ -259,7 +255,7 @@ const SignUpModal: React.FC<Props> = React.forwardRef<ModalRef, Props>(({ handle
                             >
                                 {loading ? <><CircularProgress />&nbsp;&nbsp;One Moment . . .</> : 'Sign Up'}
                             </Button>
-                            <Typography variant="body2" component="small" className={classes.text}>
+                            <Typography variant="body2" component="small">
                                 Already have an account?
                                 <Button
                                     variant="text"
