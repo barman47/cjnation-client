@@ -5,9 +5,11 @@ import { persistReducer, persistStore } from 'redux-persist';
 import storage from 'redux-persist/lib/storage/session';
 
 import app from './features/appSlice';
+import auth from './features/authSlice';
 
 const rootReducer = combineReducers({
-    app
+    app,
+    auth
 });
 
 const persistConfig = {

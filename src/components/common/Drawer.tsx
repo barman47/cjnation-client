@@ -4,8 +4,9 @@ import * as React from 'react';
 import Link from 'next/link';
 import { useDispatch, useSelector } from 'react-redux';
 import { styled, useTheme, Theme, CSSObject } from '@mui/material/styles';
-import { Menu, HomeOutline, AccountCircleOutline, TrayArrowDown, PencilOutline } from 'mdi-material-ui';
+import { HomeOutline, AccountCircleOutline, Menu as MenuIcon, TrayArrowDown, PencilOutline, Logout } from 'mdi-material-ui';
 import {
+    Avatar,
     Box,
     Button,
     CssBaseline,
@@ -16,7 +17,11 @@ import {
     ListItemButton,
     ListItemIcon,
     ListItemText,
+    Menu,
+    MenuItem,
+    Link as MuiLink,
     Toolbar,
+    Tooltip,
     useMediaQuery
 } from '@mui/material';
 
@@ -116,6 +121,14 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
     })})
 );
 
+const AccountMenuItem = styled(MenuItem)(({ theme }) => ({
+    color: theme.palette.secondary.main
+}));
+
+const LogoutMenuItem = styled(MenuItem)(({ theme }) => ({
+    color: theme.palette.error.main
+}));
+
 interface HomeLink {
     icon: React.ReactElement;
     text: string;
@@ -157,6 +170,16 @@ const AppDrawer: React.FC<Props> = ({ handleOpenSignUpModal, handleOpenSignInMod
     const matches = useMediaQuery(theme.breakpoints.down('sm'));
     const open = useSelector(selectIsDrawerOpen);
 
+    const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+
+    const menuOpen = Boolean(anchorEl);
+
+    React.useEffect(() => {
+        if (matches) {
+            dispatch(closeDrawer());
+        }
+    }, [dispatch, matches]);
+
     const handleToggleDrawer = (event: React.KeyboardEvent | React.MouseEvent) => {
         if (event.type === 'keydown' &&((event as React.KeyboardEvent).key === 'Tab' || (event as React.KeyboardEvent).key === 'Shift')) {
             return;
@@ -164,11 +187,13 @@ const AppDrawer: React.FC<Props> = ({ handleOpenSignUpModal, handleOpenSignInMod
         dispatch(toggleDrawer());
     };
 
-    React.useEffect(() => {
-        if (matches) {
-            dispatch(closeDrawer());
-        }
-    }, [dispatch, matches]);
+    const handleOpenMenu = (event: React.MouseEvent<HTMLElement>) => {
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleCloseMenu = () => {
+        setAnchorEl(null);
+    };
 
     return (
         <Box sx={{ display: 'flex' }}>
@@ -181,7 +206,7 @@ const AppDrawer: React.FC<Props> = ({ handleOpenSignUpModal, handleOpenSignInMod
                         onClick={handleToggleDrawer}
                         edge="start"
                     >
-                        <Menu />
+                        <MenuIcon />
                     </IconButton>
                     <SearchBox 
                         placeholder="Find what you are looking for"
@@ -208,6 +233,39 @@ const AppDrawer: React.FC<Props> = ({ handleOpenSignUpModal, handleOpenSignInMod
                             </Button>
                         </Box>
                     }
+                    {/* <Tooltip title="Account">
+                        <IconButton
+                            onClick={handleOpenMenu}
+                            size="small"
+                            sx={{ ml: 2 }}
+                            aria-controls={open ? 'account-menu' : undefined}
+                            aria-haspopup="true"
+                            aria-expanded={open ? 'true' : undefined}
+                        >
+                            <Avatar sx={{ width: 32, height: 32 }}>M</Avatar>
+                        </IconButton>
+                    </Tooltip>
+                    <Menu
+                        anchorEl={anchorEl}
+                        id="account-menu"
+                        open={menuOpen}
+                        onClose={handleCloseMenu}
+                        onClick={handleCloseMenu}
+                        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+                    >
+                        <MuiLink component={Link} href="/dashboard/profile" underline="none">
+                            <AccountMenuItem onClick={handleCloseMenu}>
+                                <AccountCircleOutline /> &nbsp;Profile
+                            </AccountMenuItem>
+                        </MuiLink>
+                        
+                        <Divider />
+
+                        <LogoutMenuItem>
+                            <Logout /> &nbsp;Logout
+                        </LogoutMenuItem>
+                    </Menu> */}
                 </DrawerToolBar>
             </AppBar>
             {matches ?

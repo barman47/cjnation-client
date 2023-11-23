@@ -1,10 +1,11 @@
 'use client';
 
 import * as React from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
     Box,
     Button, 
+    CircularProgress, 
     Divider, 
     IconButton, 
     InputAdornment, 
@@ -16,12 +17,16 @@ import {
     Typography
 } from '@mui/material';
 import { makeStyles } from 'tss-react/mui';
-import { OFF_BLACK, WHITE } from '@/app/theme';
 import { ModalRef } from '@/utils/constants';
 import { Close, EyeOffOutline, EyeOutline } from 'mdi-material-ui';
 import { GoogleLogin } from '@react-oauth/google';
+import _ from 'lodash';
+
+import { OFF_BLACK, WHITE } from '@/app/theme';
 import { setToast } from '@/redux/features/appSlice';
 import { AppDispatch } from '@/redux/store';
+import { UserRegistrationData, validateRegisterUser } from '@/utils/validation/auth';
+import { clearError, registerUser, selectAuthError, selectAuthMessage, selectIsAuthLoading, setAuthMessage } from '@/redux/features/authSlice';
 
 const useStyles = makeStyles()((theme: Theme) => ({
     root: {
@@ -60,15 +65,23 @@ const SignUpModal: React.FC<Props> = React.forwardRef<ModalRef, Props>(({ handle
     const { classes } = useStyles();
     const dispatch: AppDispatch = useDispatch();
 
+    const authError = useSelector(selectAuthError);
+    const loading = useSelector(selectIsAuthLoading);
+    const msg = useSelector(selectAuthMessage);
+
     const [name, setName] = React.useState('');
     const [email, setEmail] = React.useState('');
     const [password, setPassword] = React.useState('');
     const [open, setOpen] = React.useState(false);
     const [showPassword, setShowPassword] = React.useState(false);
-    // const [errors, setErrors] = React.useState<LoginData>({} as LoginData);
+    const [errors, setErrors] = React.useState<UserRegistrationData>({} as UserRegistrationData);
     
     const handleOpen = () => setOpen(true);
-    const handleClose = () => setOpen(false);
+    const handleClose = React.useCallback(() => {
+        if (!loading) {
+            setOpen(false);
+        }
+    }, [loading]);
 
     React.useImperativeHandle(ref, () => ({
         openModal: () => {
@@ -80,6 +93,37 @@ const SignUpModal: React.FC<Props> = React.forwardRef<ModalRef, Props>(({ handle
         }
     }));
 
+    // Handle API error response
+    React.useEffect(() => {
+        if (!_.isEmpty(authError)) {
+            setErrors(authError);
+            dispatch(setToast({
+                type: 'error',
+                message: authError.msg!
+            }));
+        }
+    }, [authError, dispatch]);
+
+    React.useEffect(() => {
+        if (!_.isEmpty(errors)) {
+            dispatch(clearError());
+        }
+    }, [dispatch, errors]);
+
+    React.useEffect(() => {
+        if (msg) {
+            setEmail('');
+            setName('');
+            setPassword('');
+            dispatch(setToast({
+                type: 'success',
+                message: msg
+            }));
+            dispatch(setAuthMessage(null));
+            handleClose();
+        }
+    }, [dispatch, handleClose, msg]);
+
     const toggleShowPassword = (): void => {
         setShowPassword(!showPassword);
     };
@@ -87,6 +131,29 @@ const SignUpModal: React.FC<Props> = React.forwardRef<ModalRef, Props>(({ handle
     const showSignInModal = () => {
         handleOpenSignInModal();
         handleClose();
+    };
+
+    const handleSubmit = ( event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        setErrors({} as UserRegistrationData);
+
+        const data: UserRegistrationData = {
+            name,
+            email,
+            password
+        };
+
+        const { errors, isValid } = validateRegisterUser(data);
+
+        if (!isValid) {
+            dispatch(setToast({
+                type: 'error',
+                message: 'Invalid Registration Data!'
+            }));
+            return setErrors(errors);
+        }
+
+        dispatch(registerUser(data));
     };
   
     return (
@@ -125,39 +192,43 @@ const SignUpModal: React.FC<Props> = React.forwardRef<ModalRef, Props>(({ handle
                         logo_alignment="left"
                         size="large"
                         width="1000"
+
                     />
                     <Divider>OR</Divider>
-                    <form>
+                    <form onSubmit={handleSubmit}>
                         <Stack direction="column" spacing={5}>
                             <TextField 
                                 type="text"
-                                placeholder="Name"
+                                label="Name"
                                 variant="outlined"
                                 value={name}
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
                                 fullWidth
-                                // helperText={errors.name}
-                                // error={errors.name ? true : false}
+                                helperText={errors.name || 'e.g. John Doe'}
+                                error={errors.name ? true : false}
+                                disabled={loading}
                             />
                             <TextField 
                                 type="email"
-                                placeholder="Email"
+                                label="Email"
                                 variant="outlined"
                                 value={email}
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                                 fullWidth
-                                // helperText={errors.email}
-                                // error={errors.email ? true : false}
+                                helperText={errors.email || 'e.g. john@doe.com'}
+                                error={errors.email ? true : false}
+                                disabled={loading}
                             />
                             <TextField 
                                 type={showPassword ? 'text' : 'password'}
-                                placeholder="Password"
+                                label="Password"
                                 variant="outlined"
                                 value={password}
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
                                 fullWidth
-                                // helperText={errors.password || 'Password should be at least 8 characters long'}
-                                // error={errors.password ? true : false}
+                                helperText={errors.password || 'Password should be at least 8 characters long'}
+                                error={errors.password ? true : false}
+                                disabled={loading}
                                 InputProps={{
                                     endAdornment: (
                                         <InputAdornment position="end">
@@ -184,8 +255,9 @@ const SignUpModal: React.FC<Props> = React.forwardRef<ModalRef, Props>(({ handle
                                 color="primary"
                                 size="large"
                                 type="submit"
+                                disabled={loading}
                             >
-                                Sign Up
+                                {loading ? <><CircularProgress />&nbsp;&nbsp;One Moment . . .</> : 'Sign Up'}
                             </Button>
                             <Typography variant="body2" component="small" className={classes.text}>
                                 Already have an account?
@@ -195,6 +267,7 @@ const SignUpModal: React.FC<Props> = React.forwardRef<ModalRef, Props>(({ handle
                                     size="small"
                                     type="button"
                                     onClick={showSignInModal}
+                                    disabled={loading}
                                 >
                                     Sign In
                                 </Button>
