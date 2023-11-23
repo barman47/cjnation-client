@@ -17,7 +17,7 @@ import {
     Typography
 } from '@mui/material';
 import { makeStyles } from 'tss-react/mui';
-import { ModalRef } from '@/utils/constants';
+import { ModalRef, Provider } from '@/utils/constants';
 import { Close, EyeOffOutline, EyeOutline } from 'mdi-material-ui';
 import { GoogleLogin } from '@react-oauth/google';
 import _ from 'lodash';
@@ -26,7 +26,7 @@ import { OFF_BLACK, WHITE } from '@/app/theme';
 import { setToast } from '@/redux/features/appSlice';
 import { AppDispatch } from '@/redux/store';
 import { UserRegistrationData, validateRegisterUser } from '@/utils/validation/auth';
-import { clearError, registerUser, selectAuthError, selectAuthMessage, selectIsAuthLoading, setAuthMessage } from '@/redux/features/authSlice';
+import { clearError, registerUser, selectAuthError, selectAuthMessage, selectIsAuthLoading, setAuthMessage, verifySocialLogin } from '@/redux/features/authSlice';
 
 const useStyles = makeStyles()((theme: Theme) => ({
     root: {
@@ -40,7 +40,10 @@ const useStyles = makeStyles()((theme: Theme) => ({
         padding: theme.spacing(0, 2, 2, 2),
         transform: 'translate(-50%, -50%)',
         width: theme.spacing(55),
-        // width: theme.spacing(65),
+        
+        [theme.breakpoints.down('sm')]: {
+            width: '85%'
+        }
     },
 
     closeButton: {
@@ -175,7 +178,7 @@ const SignUpModal: React.FC<Props> = React.forwardRef<ModalRef, Props>(({ handle
                     <GoogleLogin
                         text="continue_with"
                         onSuccess={response => {
-                            // dispatch(verifySocialLogin({ accessToken: response.credential!, provider: Provider.GOOGLE }));
+                            dispatch(verifySocialLogin({ accessToken: response.credential!, provider: Provider.GOOGLE }));
                         }}
                         onError={() => {
                             dispatch(setToast({

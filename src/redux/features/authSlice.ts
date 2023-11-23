@@ -3,7 +3,7 @@ import axios from 'axios';
 
 import setAuthToken from '@/utils/setAuthToken';
 import { handleError } from '@/utils/handleError';
-import { ApiErrorResponse, ApiResponse, Error } from '@/utils/constants';
+import { ApiErrorResponse, ApiResponse, Error, SocialLoginData } from '@/utils/constants';
 import { User } from '@/interfaces';
 import { RootState } from '../store';
 import { LoginData, UserRegistrationData } from '@/utils/validation/auth';
@@ -41,14 +41,14 @@ export const login = createAsyncThunk<ApiResponse, LoginData, { rejectValue: Api
     }
 });
 
-// export const getCurrentUser = createAsyncThunk<ApiResponse, void, { rejectValue: ApiErrorResponse }>('auth/getCurrentUser', async (_, { rejectWithValue }) => {
-//     try {
-//         const res = await axios.get<ApiResponse>(URL);
-//         return res.data;
-//     } catch (err) {
-//         return handleError(err, rejectWithValue, 'Failed to get user');
-//     }
-// });
+export const getCurrentUser = createAsyncThunk<ApiResponse, void, { rejectValue: ApiErrorResponse }>('auth/getCurrentUser', async (_, { rejectWithValue }) => {
+    try {
+        const res = await axios.get<ApiResponse>(URL);
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to get user');
+    }
+});
 
 export const registerUser = createAsyncThunk<ApiResponse, UserRegistrationData, { rejectValue: ApiErrorResponse }>('auth/registerUser', async (data, { rejectWithValue }) => {
     try {
@@ -60,15 +60,15 @@ export const registerUser = createAsyncThunk<ApiResponse, UserRegistrationData, 
     }
 });
 
-// export const verifySocialLogin = createAsyncThunk<ApiResponse, SocialLoginData, { rejectValue: ApiErrorResponse }>('auth/verifySocialLogin', async (data, { rejectWithValue }) => {
-//     try {
-//         const res = await axios.post<ApiResponse>(`${URL}/socialLogin`, data);
-//         setAuthToken(res.data.data.token);
-//         return res.data;
-//     } catch (err) {
-//         return handleError(err, rejectWithValue, 'Failed to register user');
-//     }
-// });
+export const verifySocialLogin = createAsyncThunk<ApiResponse, SocialLoginData, { rejectValue: ApiErrorResponse }>('auth/verifySocialLogin', async (data, { rejectWithValue }) => {
+    try {
+        const res = await axios.post<ApiResponse>(`${URL}/socialLogin`, data);
+        setAuthToken(res.data.data.token);
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to register user');
+    }
+});
 
 // export const updateUser = createAsyncThunk<ApiResponse, PetApplicationData, { rejectValue: ApiErrorResponse }>('auth/updateUser', async (data, { rejectWithValue }) => {
 //     try {
@@ -184,20 +184,20 @@ export const auth = createSlice({
             state.error = action.payload?.data;
         })
 
-        // .addCase(verifySocialLogin.pending, (state) => {
-        //     state.isLoading = true;
-        // })
-        // .addCase(verifySocialLogin.fulfilled, (state, action) => {
-        //     const { user } = action.payload.data;
-        //     state.isAuthenticated = true;
-        //     state.user = { ...user };
-        //     state.isLoading = false;
-        //     // state.msg = 'Login successful';
-        // })
-        // .addCase(verifySocialLogin.rejected, (state, action) => {
-        //     state.isLoading = false;
-        //     state.error = action.payload?.data;
-        // })
+        .addCase(verifySocialLogin.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(verifySocialLogin.fulfilled, (state, action) => {
+            const { user } = action.payload.data;
+            state.isAuthenticated = true;
+            state.user = { ...user };
+            state.isLoading = false;
+            state.msg = 'Login successful';
+        })
+        .addCase(verifySocialLogin.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
 
         // .addCase(verifyUserEmail.pending, (state) => {
         //     state.isLoading = true;
@@ -214,18 +214,18 @@ export const auth = createSlice({
         //     state.error = action.payload?.data;
         // })
 
-        // .addCase(getCurrentUser.pending, (state) => {
-        //     state.isLoading = true;
-        // })
-        // .addCase(getCurrentUser.fulfilled, (state, action: PayloadAction<ApiResponse>) => {
-        //     state.isLoading = false;
-        //     state.isAuthenticated = true;
-        //     state.user = action.payload.data;
-        // })
-        // .addCase(getCurrentUser.rejected, (state) => {
-        //     setAuthToken();
-        //     state.isLoading = false;
-        // })
+        .addCase(getCurrentUser.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(getCurrentUser.fulfilled, (state, action: PayloadAction<ApiResponse>) => {
+            state.isLoading = false;
+            state.isAuthenticated = true;
+            state.user = action.payload.data;
+        })
+        .addCase(getCurrentUser.rejected, (state) => {
+            setAuthToken();
+            state.isLoading = false;
+        })
 
         // .addCase(forgotPassword.pending, (state) => {
         //     state.isLoading = true;
