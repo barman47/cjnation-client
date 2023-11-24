@@ -145,7 +145,7 @@ const links: HomeLink[] = [
     {
         icon: <PencilOutline />,
         text: 'Write Post',
-        url: '/'
+        url: '/dashboard/posts/create'
     },
     {
         icon: <TrayArrowDown />,
@@ -155,7 +155,7 @@ const links: HomeLink[] = [
     {
         icon: <AccountCircleOutline />,
         text: 'Account',
-        url: '/'
+        url: '/dashboard/profile'
     },
 ];
 
@@ -230,7 +230,7 @@ const AppDrawer: React.FC<Props> = ({ handleOpenSignInModal }: Props) => {
                                 size="large"
                                 sx={{ marginRight: 5 }}
                                 LinkComponent={Link}
-                                href="/"
+                                href="/dashboard/posts/create"
                             >
                                 Start Writing
                             </Button>

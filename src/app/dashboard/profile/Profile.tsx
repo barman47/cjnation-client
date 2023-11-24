@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
 import { useSelector } from 'react-redux';
 import { 
     Box, 
@@ -17,15 +16,19 @@ import {
     MenuList,
     MenuItem,
     ListItemIcon,
-    ListItemText
+    ListItemText,
+    useTheme,
+    useMediaQuery
 } from '@mui/material';
 import { makeStyles } from 'tss-react/mui';
 
 import { selectUser } from '@/redux/features/authSlice';
 import { PRIMARY_COLOR } from '@/app/theme';
-import { ContentCut, DeleteForeverOutline, DeleteOutline, PencilOutline } from 'mdi-material-ui';
+import { ContentCut, DeleteOutline, PencilOutline } from 'mdi-material-ui';
 import { capitalize } from '@/utils/capitalize';
 import ProfilePost from './ProfilePost';
+import ProfileUpdateModal from './ProfileUpdateModal';
+import { ModalRef } from '@/utils/constants';
 
 interface TabPanelProps {
     children?: React.ReactNode;
@@ -62,19 +65,46 @@ function CustomTabPanel(props: TabPanelProps) {
 
 
 const useStyles = makeStyles()((theme: Theme) => ({
-    root: {
+    title: {
+        fontWeight: 600,
 
+        [theme.breakpoints.down('sm')]: {
+            textAlign: 'center'
+        }
+    },
+
+    avatar: {
+        width: theme.spacing(25), 
+        height: theme.spacing(25), 
+        backgroundColor: PRIMARY_COLOR,
+
+        [theme.breakpoints.down('sm')]: {
+            width: theme.spacing(15), 
+            height: theme.spacing(15), 
+        }
+    },
+
+    name: {
+        textTransform: 'capitalize',
+
+        [theme.breakpoints.down('sm')]: {
+            textAlign: 'center'
+        }
     }
 }));
 
 const Profile: React.FC<{}> = () => {
     const { classes } = useStyles();
+    const theme = useTheme();
+    const matches = useMediaQuery(theme.breakpoints.down('sm'));
 
     const user = useSelector(selectUser);
 
     const [value, setValue] = React.useState(0);
 
-    const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+    const profileUpdateModalRef = React.useRef<ModalRef | null>(null);
+
+    const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
         setValue(newValue);
     };
 
@@ -89,86 +119,95 @@ const Profile: React.FC<{}> = () => {
     };
 
     return (
-        <Box component="main">
-            <Typography variant="h4" sx={{ fontWeight: 600 }}>Profile</Typography>
-            <Stack direction="row" spacing={5} alignItems="center" component="section" mt={10}>
-                <Avatar sx={{ width: 200, height: 200, backgroundColor: PRIMARY_COLOR }} src={user.avatar!} alt={user.name} />
-                <Button
-                    variant="text"
-                    color="primary"
-                    size="large"
-                    startIcon={<PencilOutline />}
-                >
-                    Edit Profile
-                </Button>
-            </Stack>
-            <Typography variant="h6" mt={3} sx={{ textTransform: 'capitalize' }}>{capitalize(user.name)}</Typography>
+        <>
+            <ProfileUpdateModal ref={profileUpdateModalRef} />
+            <Box component="main">
+                <Typography variant="h4" className={classes.title}>Profile</Typography>
+                <Stack direction={matches ? 'column' : 'row'} spacing={ matches ? 2 : 5} alignItems="center" component="section" mt={matches ? 2 : 6}>
+                    <Avatar 
+                        className={classes.avatar}
+                        src={user.avatar!}
+                        alt={user.name} 
+                    />
+                    <Button
+                        variant="text"
+                        color="primary"
+                        size="large"
+                        startIcon={<PencilOutline />}
+                        onClick={() => profileUpdateModalRef.current?.openModal()}
+                    >
+                        Edit Profile
+                    </Button>
+                </Stack>
 
-            <Box>
-                <Tabs 
-                    value={value} 
-                    textColor="primary" 
-                    indicatorColor="primary" 
-                    onChange={handleChange} 
-                    aria-label="post-tabs"
-                    sx={{ borderBottom: 1, borderColor: 'divider' }}
-                >
-                    <Tab sx={{ textTransform: 'none' }} label="Blog Posts" disableRipple disableFocusRipple {...a11yProps(0)} />
-                    <Tab sx={{ textTransform: 'none' }} label="Drafts" disableRipple disableFocusRipple {...a11yProps(1)} />
-                </Tabs>
-                <CustomTabPanel value={value} index={0}>
-                    <ProfilePost
-                        title="Doing business in the 21st Century: Adaptation and Innovation"
-                        createdAt="8 days ago"
-                        handleClick={handleClick}
-                    />
-                    <ProfilePost
-                        title="Doing business in the 21st Century: Adaptation and Innovation"
-                        createdAt="8 days ago"
-                        handleClick={handleClick}
-                    />
-                    <ProfilePost
-                        title="Doing business in the 21st Century: Adaptation and Innovation"
-                        createdAt="8 days ago"
-                        handleClick={handleClick}
-                    />
-                </CustomTabPanel>
-                <CustomTabPanel value={value} index={1}>
-                    <ProfilePost
-                        title="Doing business in the 21st Century: Adaptation and Innovation"
-                        createdAt="8 days ago"
-                        handleClick={handleClick}
-                    />
-                    <ProfilePost
-                        title="Doing business in the 21st Century: Adaptation and Innovation"
-                        createdAt="8 days ago"
-                        handleClick={handleClick}
-                    />
-                </CustomTabPanel>
+                <Typography variant="h6" mt={3} className={classes.name}>{capitalize(user.name)}</Typography>
+
+                <Box>
+                    <Tabs 
+                        value={value} 
+                        textColor="primary" 
+                        indicatorColor="primary" 
+                        onChange={handleChange} 
+                        aria-label="post-tabs"
+                        sx={{ borderBottom: 1, borderColor: 'divider' }}
+                    >
+                        <Tab sx={{ textTransform: 'none' }} label="Blog Posts" disableRipple disableFocusRipple {...a11yProps(0)} />
+                        <Tab sx={{ textTransform: 'none' }} label="Drafts" disableRipple disableFocusRipple {...a11yProps(1)} />
+                    </Tabs>
+                    <CustomTabPanel value={value} index={0}>
+                        <ProfilePost
+                            title="Doing business in the 21st Century: Adaptation and Innovation"
+                            createdAt="8 days ago"
+                            handleClick={handleClick}
+                        />
+                        <ProfilePost
+                            title="Doing business in the 21st Century: Adaptation and Innovation"
+                            createdAt="8 days ago"
+                            handleClick={handleClick}
+                        />
+                        <ProfilePost
+                            title="Doing business in the 21st Century: Adaptation and Innovation"
+                            createdAt="8 days ago"
+                            handleClick={handleClick}
+                        />
+                    </CustomTabPanel>
+                    <CustomTabPanel value={value} index={1}>
+                        <ProfilePost
+                            title="Doing business in the 21st Century: Adaptation and Innovation"
+                            createdAt="8 days ago"
+                            handleClick={handleClick}
+                        />
+                        <ProfilePost
+                            title="Doing business in the 21st Century: Adaptation and Innovation"
+                            createdAt="8 days ago"
+                            handleClick={handleClick}
+                        />
+                    </CustomTabPanel>
+                </Box>
+                <Paper sx={{ width: 320, maxWidth: '100%' }}>
+                    <Menu
+                        anchorEl={anchorEl}
+                        open={open}
+                        onClose={handleClose}
+                    >
+                    <MenuList>
+                        <MenuItem>
+                            <ListItemIcon>
+                                <ContentCut fontSize="medium" />
+                            </ListItemIcon>
+                            <ListItemText>Edit Post</ListItemText>
+                        </MenuItem>
+                        <MenuItem>
+                            <ListItemIcon sx={{ color: theme.palette.error.main }}>
+                                <DeleteOutline fontSize="medium" />
+                            </ListItemIcon>
+                            <ListItemText sx={{ color: theme.palette.error.main }}>Delete Post</ListItemText>
+                        </MenuItem>
+                    </MenuList>
+                    </Menu>
+                </Paper>
             </Box>
-            <Paper sx={{ width: 320, maxWidth: '100%' }}>
-                <Menu
-                    anchorEl={anchorEl}
-                    open={open}
-                    onClose={handleClose}
-                >
-                <MenuList>
-                    <MenuItem>
-                        <ListItemIcon>
-                            <ContentCut fontSize="medium" />
-                        </ListItemIcon>
-                        <ListItemText>Edit Post</ListItemText>
-                    </MenuItem>
-                    <MenuItem>
-                        <ListItemIcon>
-                            <DeleteOutline fontSize="medium" />
-                        </ListItemIcon>
-                        <ListItemText>Delete Post</ListItemText>
-                    </MenuItem>
-                </MenuList>
-                </Menu>
-            </Paper>
-        </Box>
+        </>
     );
 };
 

@@ -11,6 +11,12 @@ export interface ApiResponse {
     statusCode: number;
 }
 
+export interface UserUpdateData {
+    data: FormData;
+    _id: string;
+    msg?: string;
+}
+
 export interface Error {
     msg?: string;
 }

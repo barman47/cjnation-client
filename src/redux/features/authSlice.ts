@@ -3,7 +3,7 @@ import axios from 'axios';
 
 import setAuthToken from '@/utils/setAuthToken';
 import { handleError } from '@/utils/handleError';
-import { ApiErrorResponse, ApiResponse, Error, SocialLoginData } from '@/utils/constants';
+import { ApiErrorResponse, ApiResponse, Error, SocialLoginData, UserUpdateData } from '@/utils/constants';
 import { User } from '@/interfaces';
 import { RootState } from '../store';
 import { LoginData, UserRegistrationData } from '@/utils/validation/auth';
@@ -71,37 +71,23 @@ export const verifySocialLogin = createAsyncThunk<ApiResponse, SocialLoginData, 
     }
 });
 
-// export const updateUser = createAsyncThunk<ApiResponse, PetApplicationData, { rejectValue: ApiErrorResponse }>('auth/updateUser', async (data, { rejectWithValue }) => {
-//     try {
-//         const { _id, previouslyOwnedPet, veterinaryServices, ...rest } = data;
-//         const res = await axios.patch<ApiResponse>(`${URL}/updateUser/${_id}`, {
-//             ...rest,
-//             previouslyOwnedPet: previouslyOwnedPet === 'Yes' ? true : false,
-//             veterinaryServices: veterinaryServices === 'Yes' ? true : false
-//         });
-//         return res.data;
-//     } catch (err) {
-//         return handleError(err, rejectWithValue, 'Failed to update user data');
-//     }
-// });
+export const updateUserProfile = createAsyncThunk<ApiResponse, UserUpdateData, { rejectValue: ApiErrorResponse }>('auth/updateUserProfile', async ({ _id, data }, { rejectWithValue }) => {
+    try { 
+        const res = await axios.patch<ApiResponse>(`${URL}/updateProfile/${_id}`, data);
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to update user data');
+    }
+});
 
-// export const updateUserProfile = createAsyncThunk<ApiResponse, { userData: UserUpdateData, _id: string }, { rejectValue: ApiErrorResponse }>('auth/updateUserProfile', async (data, { rejectWithValue }) => {
-//     try { 
-//         const res = await axios.patch<ApiResponse>(`${URL}/updateUser/${data._id}`, data.userData);
-//         return res.data;
-//     } catch (err) {
-//         return handleError(err, rejectWithValue, 'Failed to update user data');
-//     }
-// });
-
-// export const uploadAvatar = createAsyncThunk<ApiResponse, FormData, { rejectValue: ApiErrorResponse }>('auth/uploadAvatar', async (data, { rejectWithValue }) => {
-//     try {
-//         const res = await axios.patch<ApiResponse>(`${URL}/uploadAvatar`, data);
-//         return res.data;
-//     } catch (err) {
-//         return handleError(err, rejectWithValue, 'Failed to upload image');
-//     }
-// });
+export const deleteAvatar = createAsyncThunk<ApiResponse, string, { rejectValue: ApiErrorResponse }>('auth/deleteAvatar', async (fileName, { rejectWithValue }) => {
+    try {
+        const res = await axios.patch<ApiResponse>(`${URL}/deleteAvatar`, { fileName });
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to delete image');
+    }
+});
 
 // export const verifyUserEmail = createAsyncThunk<ApiResponse, string, { rejectValue: ApiErrorResponse }>('auth/verifyUserEmail', async (token, { rejectWithValue }) => {
 //     try {
@@ -252,51 +238,31 @@ export const auth = createSlice({
             state.error = action.payload?.data;
         })
 
-        // .addCase(updateUser.pending, (state) => {
-        //     state.isLoading = true;
-        // })
-        // .addCase(updateUser.fulfilled, (state, action: PayloadAction<ApiResponse>) => {
-        //     state.isLoading = false;
-        //     state.user = action.payload.data;
-        //     state.msg = action.payload.msg!;
-        // })
-        // .addCase(updateUser.rejected, (state, action) => {
-        //     state.isLoading = false;
-        //     state.error = action.payload?.data;
-        // })
+        .addCase(updateUserProfile.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(updateUserProfile.fulfilled, (state, action: PayloadAction<ApiResponse>) => {
+            state.isLoading = false;
+            state.user = action.payload.data;
+            state.msg = action.payload.msg || 'Profile updated successfully';
+        })
+        .addCase(updateUserProfile.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
 
-        // .addCase(updateUserProfile.pending, (state) => {
-        //     state.isLoading = true;
-        // })
-        // .addCase(updateUserProfile.fulfilled, (state, action: PayloadAction<ApiResponse>) => {
-        //     state.isLoading = false;
-        //     state.user = action.payload.data;
-        //     state.msg = action.payload.msg!;
-        // })
-        // .addCase(updateUserProfile.rejected, (state, action) => {
-        //     state.isLoading = false;
-        //     state.error = action.payload?.data;
-        // })
-
-        // .addCase(updateCoverPhoto.fulfilled, (state, action: PayloadAction<ApiResponse>) => {
-        //     state.user = action.payload.data;
-        // })
-        // .addCase(updateCoverPhoto.rejected, (state, action) => {
-        //     state.error = action.payload?.data || 'Failed to update cover photo';
-        // })
-
-        // .addCase(uploadAvatar.pending, (state) => {
-        //     state.isLoading = true;
-        // })
-        // .addCase(uploadAvatar.fulfilled, (state, action: PayloadAction<ApiResponse>) => {
-        //     state.isLoading = false;
-        //     state.user = action.payload.data;
-        //     state.msg = action.payload.msg!;
-        // })
-        // .addCase(uploadAvatar.rejected, (state, action) => {
-        //     state.isLoading = false;
-        //     state.error = action.payload?.data;
-        // })
+        .addCase(deleteAvatar.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(deleteAvatar.fulfilled, (state, action: PayloadAction<ApiResponse>) => {
+            state.isLoading = false;
+            state.user = action.payload.data;
+            state.msg = action.payload.msg || 'Profile photo deleted successfully';
+        })
+        .addCase(deleteAvatar.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
     }
 });
 

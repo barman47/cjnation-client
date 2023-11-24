@@ -1,7 +1,8 @@
 import * as React from 'react';
 
-import { Divider, IconButton, Stack, Tooltip, Typography } from '@mui/material';
+import { Divider, IconButton, Stack, Tooltip, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { DotsHorizontal } from 'mdi-material-ui';
+import { makeStyles } from 'tss-react/mui';
 
 interface Props {
     title: string;
@@ -9,13 +10,31 @@ interface Props {
     handleClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
+const useStyles = makeStyles()(() => ({
+    title: {
+        fontWeight: 500,
+        display: '-webkit-box',
+        overflow: 'hidden',
+        WebkitBoxOrient: 'vertical',
+        WebkitLineClamp: 2
+    },
+
+    timestamp: {
+        fontWeight: 300
+    }
+}));
+
 const  ProfilePost: React.FC<Props> = ({ title, createdAt, handleClick }) => {
+    const { classes } = useStyles();
+    const theme = useTheme();
+    const matches = useMediaQuery(theme.breakpoints.down('sm'));
+
     return (
         <>
-            <Stack direction="row" alignItems="center" justifyContent="space-between" component="div" py={2}>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" component="div" py={matches ? 1 : 2}>
                 <Stack direction="column" spacing={1}>
-                    <Typography variant="body1" sx={{ fontWeight: 500 }}>{title}</Typography>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 300 }}>Created {createdAt}</Typography>
+                    <Typography variant="body1" className={classes.title}>{title}</Typography>
+                    <Typography variant="subtitle2" className={classes.timestamp}>Created {createdAt}</Typography>
                 </Stack>
                 <Tooltip title="More" arrow placement="top">
                     <IconButton
