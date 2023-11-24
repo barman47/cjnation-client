@@ -1,4 +1,4 @@
-import { del, get, post, controller, patch, use } from './decorators';
+import { get, post, controller, patch, use } from './decorators';
 import { Request, Response } from 'express';
 import crypto from 'crypto';
 import Validator from 'validator';
@@ -6,15 +6,13 @@ import mongoose from 'mongoose';
 
 import { 
     LoginData, 
-    validateChangePassword, 
     validateLoginUser, 
     validateRegisterUser,
     validateResetPassword,
-    ChangePasswordData,
     ResetData,
     UserRegistrationData
 } from '../utils/validation/auth';
-import UserModel, { User } from '../models/User';
+import UserModel from '../models/User';
 import { ErrorObject, Role } from '../utils/constants';
 import { sendServerResponse } from '../utils/sendServerResponse';
 import { returnError } from '../utils/returnError';
@@ -24,6 +22,7 @@ import { sendEmail } from '../utils/sendEmail';
 import { deleteFile, uploadFile } from '../utils/googleCloudStorage';
 import { verifySocialLogin } from '../utils/verifySocialLogin';
 import { getFileNameExtension } from '../utils/getFileNameExtenstion';
+import { isEmpty } from '../utils/isEmpty';
 
 @controller('/auth')
 export class AuthController {
@@ -218,12 +217,53 @@ export class AuthController {
 
     // Update user by ID: This will work for every single user
     @use(protect)
-    @patch('/updateUser/:id')
+    @patch('/updateProfile/:id')
     async updateUser(req: Request, res: Response) {
         try {
-            const { email, ...rest }: User = req.body; // Removing the email field so it does not get updated
+            const file = req.files?.image;
+            const { name } = req.body;
 
-            const user = await UserModel.findByIdAndUpdate(req.params.id, { $set: { ...rest } }, { new: true, runValidators: true });
+            if (isEmpty(name)) {
+                return sendServerResponse(res, { 
+                    statusCode: 400, 
+                    success: false, 
+                    errors: { name: 'Your name is required!' },
+                    msg: 'Invalid profile data!',
+                });
+            }
+
+            if (file) {
+                const fileNameExtension = getFileNameExtension(file.name);
+                let user = await UserModel.findById(req.user._id);
+
+                if (!user) {
+                    return sendServerResponse(res, { 
+                        statusCode: 404, 
+                        success: false, 
+                        errors: { name: 'Your name is required!' },
+                        msg: `User id ${req.user._id} is not defined`,
+                    });
+                }
+
+                if (user?.avatarName) {
+                    await deleteFile(user.avatarName);
+                }
+
+                const uploadResponse = await uploadFile(file.tempFilePath, `avatars/${user._id}.${fileNameExtension}`);
+                user.avatar = uploadResponse.url;
+                user.avatarName = uploadResponse.name;
+                user.name = name;
+                user = await user.save();
+
+                return sendServerResponse(res, { 
+                    statusCode: 200, 
+                    success: true, 
+                    data: user,
+                    msg: 'User updated successfully'
+                });
+            }
+
+            const user = await UserModel.findByIdAndUpdate(req.params.id, { $set: { name } }, { new: true, runValidators: true });
 
             return sendServerResponse(res, { 
                 statusCode: 200, 
@@ -233,61 +273,6 @@ export class AuthController {
             });
         } catch(err) {
             return returnError(err, res, 500, 'Failed to update user');
-        }
-    }
-
-    // Change user password
-    @use(protect)
-    @patch('/changePassword')
-    async changePassword(req: Request, res: Response) {
-        try {
-            const { currentPassword, newPassword }: ChangePasswordData = req.body;
-            const { errors, isValid }: ErrorObject<ChangePasswordData> = validateChangePassword(req.body);
-    
-            if (!isValid) {
-                return sendServerResponse(res, { 
-                    statusCode: 400, 
-                    success: false, 
-                    errors,
-                    msg: 'Invalid password data!'
-                });
-            }
-    
-            const user = await UserModel.findById(req.user.id).select('+password');
-
-            if (!user) {
-                return sendServerResponse(res, { 
-                    statusCode: 404, 
-                    success: false, 
-                    errors: { },
-                    msg: 'IUser does not exist!'
-                });
-            }
-    
-            if (!(await user.matchPassword(currentPassword))) {
-                return sendServerResponse(res, { 
-                    statusCode: 401, 
-                    success: false, 
-                    errors: { currentPassword: 'Password incorrect!' },
-                    msg: 'Password incorrect!',
-                });
-            }
-    
-            if (await user.matchPassword(newPassword)) {
-                return sendServerResponse(res, { 
-                    statusCode: 401, 
-                    success: false, 
-                    errors: { newPassword: 'New password cannot be same with old password!' },
-                    msg: 'New password cannot be same with old password!',
-                });
-            }
-    
-            user.password = newPassword;
-            await user.save();
-            // Send password change email
-            sendTokenResponse(user, 200, 'Password changed successfully', res);
-        } catch(err) {
-            return returnError(err, res, 500, 'Password could not be changed');
         }
     }
 
@@ -411,71 +396,31 @@ export class AuthController {
             return returnError(err, res, 500, 'Unable to get current user');
         }
     }
-    
+
     @use(protect)
-    @patch('/uploadAvatar')
-    async uploadAvatar (req: Request, res: Response) {
+    @patch('/deleteAvatar')
+    async deleteAvatar (req: Request, res: Response) {
         try {
-            const file = req.files?.image;
-            if (!file) {
-                return sendServerResponse(res, { 
-                    statusCode: 400, 
-                    success: false, 
-                    errors: { image: 'Image is required!' },
-                    msg: 'Invalid profile photo!',
-                });
-            }
-
-
-            const fileNameExtension = getFileNameExtension(file.name);
-            let user = await UserModel.findById(req.user._id);
-
-            if (user?.avatarName) {
-                await deleteFile(user.avatarName);
-                const uploadResponse = await uploadFile(file.tempFilePath, `avatars/${new mongoose.Types.ObjectId()}.${fileNameExtension}`);
-                user.avatar = uploadResponse.url;
-                user.avatarName = uploadResponse.name;
-                user = await user.save();
+            // if (!req.body.fileName) {
+            //     return sendServerResponse(res, { 
+            //         statusCode: 400, 
+            //         success: false, 
+            //         errors: { fileName: 'File name is required!' },
+            //         msg: 'Invalid delete data!',
+            //     });
+            // }
+            if (req.body.fileName) {
+                await deleteFile(req.body.fileName);
+                const updatedUser = await UserModel.findOneAndUpdate({ _id: req.user._id }, { $unset: { avatar: 1, avatarName: 1 }}, { new: true } );
 
                 return sendServerResponse(res, { 
                     statusCode: 200, 
                     success: true, 
-                    data: user,
-                    msg: 'Profile photo uploaded successfully'
+                    data: updatedUser,
+                    msg: 'Profile photo deleted successfully'
                 });
             }
 
-            
-            const { url, name } = await uploadFile(file.tempFilePath, `avatars/${new mongoose.Types.ObjectId()}.${fileNameExtension}`);
-            const updatedUser = await UserModel.findOneAndUpdate({ _id: req.user._id }, { $set: { avatar: url, avatarName: name }}, { new: true } );
-
-            return sendServerResponse(res, { 
-                statusCode: 200, 
-                success: true, 
-                data: updatedUser,
-                msg: 'Profile photo uploaded successfully'
-            });
-        } catch (err) {
-            return returnError(err, res, 500, 'Unable to upload profile photo');
-        }
-    }
-
-    @use(protect)
-    @del('/deleteAvatar')
-    async deleteAvatar (req: Request, res: Response) {
-        try {
-
-            if (!req.body.fileName) {
-                return sendServerResponse(res, { 
-                    statusCode: 400, 
-                    success: false, 
-                    errors: { fileName: 'File name is required!' },
-                    msg: 'Invalid delete data!',
-                });
-            }
-
-
-            await deleteFile(req.body.fileName);
             const updatedUser = await UserModel.findOneAndUpdate({ _id: req.user._id }, { $unset: { avatar: 1, avatarName: 1 }}, { new: true } );
 
             return sendServerResponse(res, { 
