@@ -1,6 +1,7 @@
 export const OPEN_DRAWER_WIDTH = 240;
 export const CLOSED_DRAWER_WIDTH = 70;
 export const TOKEN_VALUE = 'cjnationAuthToken';
+export const PAGE_TITLE = 'CJNation Entertainment';
 
 export interface ApiResponse {
     success: boolean;
