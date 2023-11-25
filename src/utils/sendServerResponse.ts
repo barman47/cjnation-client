@@ -9,7 +9,7 @@ export const sendServerResponse = (res: Response, serverResponse: ServerResponse
     if (errors) {
         return res.status(statusCode).json({
             success,
-            errors: { ...errors, msg }
+            errors: { ...(errors as Record<string, string>), msg }
         });
     }
 
