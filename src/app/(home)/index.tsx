@@ -1,18 +1,20 @@
 import { Divider, Grid } from '@mui/material';
 
-import Post from './Post';
 import FeaturedPost from './FeaturedPost';
+import { Post as PostData } from '@/interfaces';
+import PostList from './PostList';
 
-const Home:React.FC<{}> = () => {
+interface Props {
+    posts: PostData[];
+    // featuredPosts: PostData[];
+}
+
+const Home:React.FC<Props> = ({ posts }) => {
     return (
         <>
             <Grid container direction="row" spacing={1}>
                 <Grid item xs={12} lg={8}>
-                    <Post />
-                    <Post />
-                    <Post />
-                    <Post />
-                    <Post />
+                    <PostList posts={posts} />
                 </Grid>
                 <Grid item xs={12} lg={0.5}>
                     <Divider orientation="vertical" />

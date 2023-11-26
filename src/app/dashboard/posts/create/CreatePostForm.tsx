@@ -27,7 +27,7 @@ import { AppDispatch } from '@/redux/store';
 import { setToast } from '@/redux/features/appSlice';
 import { selectUser } from '@/redux/features/authSlice';
 import { LIGHT_GREY } from '@/app/theme';
-import { clearError, createDraft, selectIsPostLoading, selectPostErrors, selectPostMessage, setPostMessage } from '@/redux/features/postsSlice';
+import { clearError, createDraft, createPost, selectIsPostLoading, selectPostErrors, selectPostMessage, setPostMessage } from '@/redux/features/postsSlice';
 import { clearCategoriesErrors, getCategoriesByType, selectCategoires, selectCategoryErrors } from '@/redux/features/categoriesSlice';
 import { Category } from '@/interfaces';
 import { getCategoryId } from '@/utils/getCategoryId';
@@ -188,7 +188,7 @@ const CreatePostForm: React.FC<{}> = () => {
         data.append('category', getCategoryId(category, categories));
         data.append('author', user._id!);
         data.append('image', image);
-        // dispatch(updateUserProfile({ data, _id: user._id! }));
+        dispatch(createPost(data));
     };
 
     return (
@@ -234,17 +234,17 @@ const CreatePostForm: React.FC<{}> = () => {
                             <FormHelperText>{title.length}/{TITLE_LENGTH} Characters</FormHelperText>
                         }
                     />
-                    <Stack direction="row" spacing={3}>
+                    <Stack direction="row" spacing={3} alignItems="center">
                         <Button
                             size="large"
-                            variant="outlined"
+                            variant="contained"
                             color="primary"
                             onClick={handleSelectImage}
                             disabled={loading}
                         >
                             Select Image
                         </Button>
-                        {imageSrc &&
+                        {imageSrc ?
                             <Button
                                 size="large"
                                 variant="outlined"
@@ -255,6 +255,8 @@ const CreatePostForm: React.FC<{}> = () => {
                             >
                                 Remove Image
                             </Button>
+                            :
+                            <FormHelperText sx={{ color: errors.mediaUrl ? theme.palette.error.main : theme.palette.grey[800] }}>{errors.mediaUrl || 'Provie an image for your post. File limit 10MB'}</FormHelperText>
                         }
                     </Stack>
                     <input

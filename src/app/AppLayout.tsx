@@ -6,7 +6,6 @@ import { makeStyles } from 'tss-react/mui';
 
 import { selectIsDrawerOpen } from '@/redux/features/appSlice';
 import { CLOSED_DRAWER_WIDTH, OPEN_DRAWER_WIDTH, TOKEN_VALUE } from '@/utils/constants';
-import Categories from '@/components/common/Categories';
 import React from 'react';
 import setAuthToken from '@/utils/setAuthToken';
 import { getCurrentUser } from '@/redux/features/authSlice';
@@ -69,7 +68,6 @@ const AppLayout: React.FC<Props> = ({ children }: Props) => {
             component="div" 
             className={cx(classes.root, { [classes.drawerOpen]: drawerOpen, [classes.drawerClose]: !drawerOpen, [classes.rightMobileMargin]: matches })} 
         >
-            <Categories />
             {children}
         </Box>
 	);

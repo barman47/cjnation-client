@@ -12,6 +12,7 @@ const URL = `${process.env.NEXT_PUBLIC_API}/categories`;
 
 interface Categorytate {
     isLoading: boolean;
+    category: Category;
     categories: Category[];
     msg: string | null;
     error: CategoryError;
@@ -19,6 +20,7 @@ interface Categorytate {
 
 const initialState: Categorytate = {
     isLoading: false,
+    category: {} as Category,
     categories: [],
     msg: null,
     error: {} as CategoryError
@@ -37,10 +39,12 @@ export const categories = createSlice({
     name: 'categories',
     initialState,
     reducers: {
+        setCategory: (state, action: PayloadAction<Category | null>) => {
+            state.category = action.payload || {} as Category;
+        },
         setCategoriesMessage: (state, action: PayloadAction<string | null>) => {
             state.msg = action.payload
         },
-
         clearCategoriesErrors: (state) => {
             state.error = {} as CategoryError;
         },
@@ -65,11 +69,13 @@ export const categories = createSlice({
 export const {
     clearCategoriesErrors,
     setCategoriesMessage,
+    setCategory
 } = categories.actions;
 
 export const selectCategoryErrors = (state: RootState) => state.categories.error;
 export const selectIsCategoiresLoading = (state: RootState) => state.categories.isLoading;
 export const selectCategoiresMessage = (state: RootState) => state.categories.msg;
+export const selectCategory = (state: RootState) => state.categories.category;
 export const selectCategoires = (state: RootState) => state.categories.categories;
 
 export default categories.reducer;

@@ -4,10 +4,13 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Avatar, Box, Chip, Stack, Theme, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { makeStyles } from 'tss-react/mui';
+import parse from 'html-react-parser';
+import moment from 'moment';
 
 import avatar from '../../../public/assets/avatar.jpeg';
-import postImage from '../../../public/assets/avatar.jpeg';
 import { DARK_GREY, LIGHT_GREY, OFF_BLACK } from '../theme';
+import { Post as PostData } from '@/interfaces';
+import { capitalize } from '@/utils/capitalize';
 
 const useStyles = makeStyles()((theme: Theme) => ({
     root: {
@@ -60,7 +63,7 @@ const useStyles = makeStyles()((theme: Theme) => ({
 
     imageContainer: {
         
-        width: theme.spacing(150),
+        width: theme.spacing(70),
         height: theme.spacing(25),
         // height: '55%',
         // width: '100%',
@@ -95,7 +98,11 @@ const useStyles = makeStyles()((theme: Theme) => ({
     }
 }));
 
-const Post: React.FC<{}> = () => {
+interface Props {
+    post: PostData;
+}
+
+const Post: React.FC<Props> = ({ post }) => {
     const { classes } = useStyles();
     const theme = useTheme();
     const matches = useMediaQuery(theme.breakpoints.down('sm'));
@@ -106,63 +113,33 @@ const Post: React.FC<{}> = () => {
                 <Stack direction="column" spacing={2}>
                     <Stack direction="row" alignItems="center" spacing={1}>
                         <Avatar src={avatar.src} />
-                        <Typography variant="subtitle2" className={classes.author}>John Akano</Typography>
+                        <Typography variant="subtitle2" className={classes.author}>{typeof post.author === 'string' ? post.author : capitalize(post.author.name)}</Typography>
                     </Stack>
                     <Typography variant="h6" className={classes.title}>
-                        <Link href="/" className={classes.link}>
-                            Doing business in Doing Busines in the 21st Century Doing business in Doing Busines in the 21st Century Doing business in Doing Busines in the 21st Century
+                        <Link href={`/posts/${post.slug}/${post._id}`} className={classes.link}>
+                            {post.title}
                         </Link>
                     </Typography>
-                    <Typography variant="body1" paragraph className={classes.text}>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Laborum tempora iusto omnis laboriosam doloribus repellendus dignissimos nisi impedit incidunt, earum adipisci magni nesciunt sapiente reprehenderit enim beatae, asperiores sed neque.</Typography>
+                    <Typography variant="body1" paragraph className={classes.text}>{parse(post.body)}</Typography>
                 </Stack>
                 <Box component="div" className={classes.imageContainer}>
                     <Image 
-                        src={postImage.src}
+                        src={post.mediaUrl!}
                         width={500}
                         height={300}
-                        alt="Post image"
+                        alt={post.title}
                         className={classes.postImage}
                     />
                 </Box>
             </Stack>
             <Stack direction="row" alignItems="center" spacing={1} justifyContent={matches ? 'space-between' : 'flex-start'} className={classes.footer}>
-                <Typography variant="subtitle1">Aug 22</Typography>
+                <Typography variant="subtitle1">{moment(post.createdAt).format('MMM Do, YYYY')}</Typography>
                 <Box component="div" className={classes.dot}></Box>
-                <Typography variant="subtitle1">10 min read</Typography>
+                <Typography variant="subtitle1">{post.readDuration} min read</Typography>
                 <Box component="div" className={classes.dot}></Box>
-                <Chip label="Business" sx={{ color: OFF_BLACK }} />
+                <Chip label={typeof post.category === 'string' ? post.category : post.category.name} sx={{ color: OFF_BLACK }} />
             </Stack>
         </Stack>
-        // <Stack direction="row" spacing={2} alignItems="flex-start" className={classes.root}>
-        //     <Stack direction="column" spacing={2}>
-        //         <Stack direction="row" alignItems="center" spacing={1}>
-        //             <Avatar src={avatar.src} />
-        //             <Typography variant="subtitle2" className={classes.author}>John Akano</Typography>
-        //         </Stack>
-        //         <Typography variant="h6" className={classes.title}>
-        //             <Link href="/" className={classes.link}>
-        //                 Doing business in Doing Busines in the 21st Century Doing business in Doing Busines in the 21st Century Doing business in Doing Busines in the 21st Century
-        //             </Link>
-        //         </Typography>
-        //         <Typography variant="body1" paragraph className={classes.text}>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Laborum tempora iusto omnis laboriosam doloribus repellendus dignissimos nisi impedit incidunt, earum adipisci magni nesciunt sapiente reprehenderit enim beatae, asperiores sed neque.</Typography>
-        //         <Stack direction="row" alignItems="center" spacing={1} justifyContent={matches ? 'space-between' : 'flex-start'} className={classes.footer}>
-        //             <Typography variant="subtitle1">Aug 22</Typography>
-        //             <Box component="div" className={classes.dot}></Box>
-        //             <Typography variant="subtitle1">10 min read</Typography>
-        //             <Box component="div" className={classes.dot}></Box>
-        //             <Chip label="Business" sx={{ color: OFF_BLACK }} />
-        //         </Stack>
-        //     </Stack>
-        //     <Box component="div" className={classes.imageContainer}>
-        //         <Image 
-        //             src={postImage.src}
-        //             width={500}
-        //             height={300}
-        //             alt="Post image"
-        //             className={classes.postImage}
-        //         />
-        //     </Box>
-        // </Stack>
     );
 };
 

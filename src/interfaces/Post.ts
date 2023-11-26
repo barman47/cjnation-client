@@ -1,14 +1,16 @@
 import { Error, PostStatus } from '@/utils/constants';
+import { Category, User } from '.';
 
 export interface Post extends Error {
-    category: string;
+    _id?: string;
+    category: Category |string;
     title: string;
     body: string;
     slug?: string;
     readDuration?: number;
     mediaUrl?: string;
     mediaName?: string;
-    author: string;
+    author: string | User;
     status: PostStatus;
     rejectionReason: string;
     approvedAt?: Date | null;
