@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 
 import Home from './(home)';
 import { PAGE_TITLE } from '@/utils/constants';

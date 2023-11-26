@@ -76,6 +76,8 @@ const CreatePostForm: React.FC<{}> = () => {
     const fileUploadRef = React.useRef<HTMLInputElement>(null);
     const postSuccessModalRef = React.useRef<ModalRef | null>(null);
 
+    
+
     React.useEffect(() => {
         dispatch(getCategoriesByType(Categories.POST));
     }, [dispatch]);
