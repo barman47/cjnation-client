@@ -24,7 +24,7 @@ export class CommentsController {
 
             const [comment] = await Promise.all([
                 CommentModel.create({ text: req.body.text, user: req.user._id, post: req.params.postId }),
-                PostModel.updateOne({ _id: req.params.id }, { $inc: { comments: 1 } })
+                PostModel.updateOne({ _id: req.params.postId }, { $inc: { comments: 1 } })
             ]);
             return sendServerResponse(res, {
                 success: true,
@@ -37,11 +37,13 @@ export class CommentsController {
         }
     }
 
-    @use(protect)
     @get('/:postId')
     async getCommentsForPost(req: Request, res: Response) {
         try {
-            const comments = await CommentModel.find({ post: req.params.postId });
+            const comments = await CommentModel.find({ post: req.params.postId })
+                .populate({ path: 'user', select: 'name avatar' })
+                .sort({ createdAt: 'desc' })
+                .exec();
             return sendServerResponse(res, {
                 success: true,
                 statusCode: 200,
