@@ -1,9 +1,9 @@
 import { Document, Schema, Types, model } from 'mongoose';
 
-import { Categories, PostStatus } from '../utils/constants';
+import { PostStatus } from '../utils/constants';
 
 export interface Post extends Document {
-    category: Categories;
+    category: Types.ObjectId | string;
     title: string;
     body: string;
     slug?: string;
@@ -12,6 +12,8 @@ export interface Post extends Document {
     mediaName?: string;
     author: Types.ObjectId | string;
     status: PostStatus;
+    comments?: number;
+    likes?:number;
     rejectionReason: string;
     approvedAt?: Date | null;
     approvedBy?: Date | null;
@@ -23,9 +25,9 @@ export interface Post extends Document {
 
 const PostSchema = new Schema<Post>({
     category: {
-        type: String,
-        required: [true, 'Post category type is required!'],
-        trim: true
+        type: Schema.Types.ObjectId,
+        ref: 'Category',
+        required: [true, 'Post author is required']
     },
 
     title: {
@@ -41,7 +43,8 @@ const PostSchema = new Schema<Post>({
     },
 
     slug: {
-        type: String
+        type: String,
+        lowercase: true
     },
 
     readDuration: {
@@ -67,6 +70,16 @@ const PostSchema = new Schema<Post>({
         required: [true, 'Post status is required'],
         trim: true,
         enum: [PostStatus.APPROVED, PostStatus.DRAFT, PostStatus.PUBLISHED, PostStatus.REJECTED]
+    },
+
+    comments: {
+        type: Number,
+        default: 0
+    },
+
+    likes: {
+        type: Number,
+        default: 0
     },
 
     rejectionReason: {
