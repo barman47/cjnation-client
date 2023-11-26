@@ -158,7 +158,7 @@ const ProfileUpdateModal: React.FC<Props> = React.forwardRef<ModalRef, Props>((_
         reader.readAsDataURL(files![0]);
     };
 
-    const handleSubmit = ( event: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setErrors({} as AuthError);
 

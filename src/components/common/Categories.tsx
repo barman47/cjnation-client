@@ -13,6 +13,7 @@ import {
         overflowX: 'scroll',
         whiteSpace: 'nowrap', // Prevents the content from wrapping to the next line
         width: '100%', // Set a fixed width or adjust as necessary
+        minWidth: '100%'
     }
  }));
 
