@@ -116,7 +116,7 @@ export class PostsController {
     @get('/categories/category/:categoryId')
     async getPostsByCategory(req: Request, res: Response) {
         try {
-            const posts = await PostModel.find({ category: req.params.categoryId })
+            const posts = await PostModel.find({ category: req.params.categoryId, status: PostStatus.APPROVED })
                 .populate({ path: 'author', select: 'name avatar' })
                 .populate({ path: 'category', select: 'name' })
                 .sort({ createdAt: 'desc' })
@@ -136,7 +136,10 @@ export class PostsController {
     @get('/:id/:slug')
     async getPostBySlug(req: Request, res: Response) {
         try {
-            const post = await PostModel.findOne({ _id: req.params.id, slug: req.params.slug.toLowerCase() });
+            const post = await PostModel.findOne({ _id: req.params.id, slug: req.params.slug.toLowerCase(), status: PostStatus.APPROVED })
+                .populate({ path: 'author', select: 'name avatar' })
+                .populate({ path: 'category', select: 'name' })
+                .exec();
 
             if (!post) {
                 return sendServerResponse(res, {
