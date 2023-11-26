@@ -12,6 +12,8 @@ export interface Post extends Error {
     mediaName?: string;
     author: string | User;
     status: PostStatus;
+    comments: number;
+    likes: number;
     rejectionReason: string;
     approvedAt?: Date | null;
     approvedBy?: Date | null;

@@ -7,12 +7,16 @@ import storage from 'redux-persist/lib/storage/session';
 import app from './features/appSlice';
 import auth from './features/authSlice';
 import categories from './features/categoriesSlice';
+import comments from './features/commentsSlice';
+import likes from './features/likesSlice';
 import posts from './features/postsSlice';
 
 const rootReducer = combineReducers({
     app,
     auth,
     categories,
+    comments,
+    likes,
     posts
 });
 

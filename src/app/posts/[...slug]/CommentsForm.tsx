@@ -1,51 +1,47 @@
 'use client';
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     Avatar,
     Button, 
-    CircularProgress, 
     Stack,
     TextField,
-    Theme,
     Typography
 } from '@mui/material';
-import { makeStyles } from 'tss-react/mui';
-import _ from 'lodash';
+import _, { isEmpty } from 'lodash';
 
 import { setToast } from '@/redux/features/appSlice';
 import { AppDispatch } from '@/redux/store';
-import { LoginData } from '@/utils/validation/auth';
-import { clearError, selectAuthError, selectAuthMessage, selectIsAuthLoading } from '@/redux/features/authSlice';
+import { addComment, clearError, CommentsError, selectCommentMessage, selectCommentsErrors, selectIsCommentLoading, setCommentMessage } from '@/redux/features/commentsSlice';
 
-const useStyles = makeStyles()((theme: Theme) => ({
-    root: {
+interface Props {
+    postId: string;
+    numberOfComments: number;
+}
 
-    }
-}));
-
-const CommentsForm: React.FC<{}> = () => {
-    const { classes } = useStyles();
+const CommentsForm: React.FC<Props> = ({ postId, numberOfComments }) => {
     const dispatch: AppDispatch = useDispatch();
+    const router = useRouter();
 
-    const authError = useSelector(selectAuthError);
-    const loading = useSelector(selectIsAuthLoading);
-    const msg = useSelector(selectAuthMessage);
+    const commentsError = useSelector(selectCommentsErrors);
+    const loading = useSelector(selectIsCommentLoading);
+    const msg = useSelector(selectCommentMessage);
 
-    const [comment, setComment] = React.useState('');
-    const [errors, setErrors] = React.useState<LoginData>({} as LoginData);
+    const [text, setText] = React.useState('');
+    const [errors, setErrors] = React.useState<CommentsError>({} as CommentsError);
 
     // Handle API error response
     React.useEffect(() => {
-        if (!_.isEmpty(authError)) {
-            setErrors(authError);
+        if (!_.isEmpty(commentsError)) {
+            setErrors(commentsError);
             dispatch(setToast({
                 type: 'error',
-                message: authError.msg!
+                message: commentsError.msg!
             }));
         }
-    }, [authError, dispatch]);
+    }, [commentsError, dispatch]);
 
     React.useEffect(() => {
         if (!_.isEmpty(errors)) {
@@ -53,58 +49,44 @@ const CommentsForm: React.FC<{}> = () => {
         }
     }, [dispatch, errors]);
 
-    // React.useEffect(() => {
-    //     if (msg) {
-    //         dispatch(setToast({
-    //             type: 'success',
-    //             message: msg,
-    //             autoHideDuration: 6000
-    //         }));
-    //         dispatch(setAuthMessage(null));
-    //         handleClose();
-    //     }
-    // }, [dispatch, handleClose, msg]);
+     React.useEffect(() => {
+        if (msg) {
+            router.refresh()
+            dispatch(setCommentMessage(null));
+            setText('');
+        }
+    }, [msg, dispatch, router]);
 
     const handleSubmit = ( event: React.FormEvent<HTMLFormElement>) => {
-        // event.preventDefault();
-        // setErrors({} as LoginData);
+        event.preventDefault();
+        setErrors({} as CommentsError);
 
-        // const data: LoginData = {
-        //     email,
-        //     password
-        // };
 
-        // const { errors, isValid } = validateLoginUser(data);
+        if (isEmpty(text)) {
+            return setErrors({ ...errors, text: 'Comment is required!' });
+        }
 
-        // if (!isValid) {
-        //     dispatch(setToast({
-        //         type: 'error',
-        //         message: 'Invalid Login Data!'
-        //     }));
-        //     return setErrors(errors);
-        // }
-
-        // dispatch(login(data));
+        dispatch(addComment({ postId, text }));
     };
   
     return (
         <form onSubmit={handleSubmit}>
-            <Stack direction="column" spacing={5} alignItems="flex-end">
-                <Typography variant="h5" alignSelf="flex-start" sx={{ fontWeight: 500 }}>32 Comments</Typography>
+            <Stack direction="column" spacing={2} alignItems="flex-end">
+                <Typography variant="h5" alignSelf="flex-start" sx={{ fontWeight: 500 }}>{numberOfComments} {numberOfComments === 1 ? 'Comment' : 'Comments'}</Typography>
                 <Stack direction="row" spacing={1} alignSelf="stretch">
                     <Avatar />
                     <TextField 
                         type="text"
                         placeholder="Write a comment..."
                         variant="outlined"
-                        value={comment}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setComment(e.target.value)}
+                        value={text}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setText(e.target.value)}
                         fullWidth
                         multiline
                         minRows={3}
-                        // helperText={errors.comment || 'Password should be at least 8 characters long'}
-                        // error={errors.password ? true : false}
-                        // disabled={loading}
+                        helperText={errors.text}
+                        error={errors.text ? true : false}
+                        disabled={loading}
                     />
                 </Stack>
                 <Button
@@ -114,7 +96,7 @@ const CommentsForm: React.FC<{}> = () => {
                     type="submit"
                     disabled={loading}
                 >
-                    {loading ? <><CircularProgress />&nbsp;&nbsp;Posting Comment . . .</> : 'Submit'}
+                    Submit
                 </Button>
             </Stack>
         </form>

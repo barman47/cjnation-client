@@ -113,7 +113,7 @@ const Post: React.FC<Props> = ({ post }) => {
             <Stack direction="row" spacing={2} alignItems="flex-start">
                 <Stack direction="column" spacing={2}>
                     <Stack direction="row" alignItems="center" spacing={1}>
-                        <Avatar src={avatar.src} />
+                        <Avatar src={typeof post.author === 'string' ? post.author : post.author.avatar!} />
                         <Typography variant="subtitle2" className={classes.author}>{typeof post.author === 'string' ? post.author : capitalize(post.author.name)}</Typography>
                     </Stack>
                     <Typography variant="h6" className={classes.title}>
