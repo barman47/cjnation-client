@@ -54,6 +54,7 @@ const useStyles = makeStyles()((theme: Theme) => ({
         overflow: 'hidden',
         WebkitBoxOrient: 'vertical',
         WebkitLineClamp: 3,
+        margin: '0 !important',
 
         [theme.breakpoints.down('sm')]: {
             WebkitLineClamp: 2,

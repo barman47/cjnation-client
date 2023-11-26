@@ -1,3 +1,9 @@
+import { Box, Divider, Stack } from '@mui/material';
+
+import Post from './Post';
+import CommentsForm from './CommentsForm';
+import CommentsList from './CommentsList';
+
 async function getPost (slug: string, id: string) {
 
 	const res = await fetch(`${process.env.NEXT_PUBLIC_API}/posts/${id}/${slug}`);
@@ -21,9 +27,14 @@ const PostPage: React.FC<Props> = async ({ params }) => {
     const res = await getPost(slug[0], slug[1]);
 
     return (
-        <div>
-            <h1>Post Page</h1>
-        </div>
+        <Box component="main">
+            <Stack direction="column" spacing={3}>
+                <Post />
+                <Divider />
+                <CommentsForm />
+                <CommentsList />
+            </Stack>
+        </Box>
     );
 };
 
