@@ -5,13 +5,8 @@ import { useServerInsertedHTML } from 'next/navigation';
 import { CacheProvider } from '@emotion/react';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-// import { useDispatch } from 'react-redux';
 
 import { theme } from './theme';
-// import { getCurrentUser } from '@/redux/features/authSlice';
-// import { AppDispatch } from '@/redux/store';
-// import setAuthToken from '@/utils/setAuthToken';
-// import { TOKEN_VALUE } from '@/utils/constants';
 
 type ThemeRegistryProps = {
     children: React.ReactNode;
@@ -25,8 +20,6 @@ export default function ThemeRegistry({
     children,
     options
 }: ThemeRegistryProps) {
-    // const dispatch: AppDispatch = useDispatch();
-
     const [{ cache, flush }] = useState(() => {
         const cache = createCache({ key: 'my' });
         cache.compat = true;
@@ -65,14 +58,6 @@ export default function ThemeRegistry({
             />
         );
     });
-        
-    // useEffect(() => {
-    //     const authToken = localStorage.getItem(TOKEN_VALUE);
-    //     if (authToken) {
-    //         setAuthToken(authToken);
-    //         dispatch(getCurrentUser());
-    //     }
-    // }, [dispatch]);
 
     return (
         <CacheProvider value={cache}>

@@ -29,11 +29,11 @@ import MuiDrawer from '@mui/material/Drawer';
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
 
 import { CLOSED_DRAWER_WIDTH, OPEN_DRAWER_WIDTH } from '@/utils/constants';
-import { closeDrawer, selectIsDrawerOpen, toggleDrawer } from '@/redux/features/appSlice';
+import { closeDrawer, selectIsDrawerOpen, setToast, toggleDrawer } from '@/redux/features/appSlice';
 import { AppDispatch } from '@/redux/store';
 import SearchBox from './SearchBox';
 import { LIGHT_GREY, PRIMARY_COLOR, WHITE } from '@/app/theme';
-import { selectIsUserAuthenticated, selectUser } from '@/redux/features/authSlice';
+import { logout, selectIsUserAuthenticated, selectUser } from '@/redux/features/authSlice';
 
 interface AppBarProps extends MuiAppBarProps {
     open?: boolean;
@@ -145,7 +145,7 @@ const links: HomeLink[] = [
     {
         icon: <PencilOutline />,
         text: 'Write Post',
-        url: '/'
+        url: '/dashboard/posts/create'
     },
     {
         icon: <TrayArrowDown />,
@@ -155,16 +155,15 @@ const links: HomeLink[] = [
     {
         icon: <AccountCircleOutline />,
         text: 'Account',
-        url: '/'
+        url: '/dashboard/profile'
     },
 ];
 
 interface Props {
-    handleOpenSignUpModal: () => void;
     handleOpenSignInModal: () => void;
 }
 
-const AppDrawer: React.FC<Props> = ({ handleOpenSignUpModal, handleOpenSignInModal }: Props) => {
+const AppDrawer: React.FC<Props> = ({ handleOpenSignInModal }: Props) => {
     const dispatch: AppDispatch = useDispatch();
 
     const isAuthenticated = useSelector(selectIsUserAuthenticated);
@@ -199,6 +198,14 @@ const AppDrawer: React.FC<Props> = ({ handleOpenSignUpModal, handleOpenSignInMod
         setAnchorEl(null);
     };
 
+    const handleLogout = () => {
+        dispatch(logout());
+        dispatch(setToast({
+            type: 'success',
+            message: 'Logged out successfully'
+        }));
+    };
+
     return (
         <Box sx={{ display: 'flex' }}>
             <CssBaseline />
@@ -223,7 +230,7 @@ const AppDrawer: React.FC<Props> = ({ handleOpenSignUpModal, handleOpenSignInMod
                                 size="large"
                                 sx={{ marginRight: 5 }}
                                 LinkComponent={Link}
-                                href="/"
+                                href="/dashboard/posts/create"
                             >
                                 Start Writing
                             </Button>
@@ -248,7 +255,7 @@ const AppDrawer: React.FC<Props> = ({ handleOpenSignUpModal, handleOpenSignInMod
                                     aria-haspopup="true"
                                     aria-expanded={open ? 'true' : undefined}
                                 >
-                                    <Avatar sx={{ width: 32, height: 32, backgroundColor: PRIMARY_COLOR }} src={user.avatar!}>{user.name.charAt(0).toString()}</Avatar>
+                                    <Avatar sx={{ width: 32, height: 32, backgroundColor: PRIMARY_COLOR }} src={user.avatar!} alt={user.name} />
                                 </IconButton>
                             </Tooltip>
                             <Menu
@@ -268,7 +275,7 @@ const AppDrawer: React.FC<Props> = ({ handleOpenSignUpModal, handleOpenSignInMod
                                 
                                 <Divider />
 
-                                <LogoutMenuItem>
+                                <LogoutMenuItem onClick={handleLogout}>
                                     <Logout /> &nbsp;Logout
                                 </LogoutMenuItem>
                             </Menu>
@@ -313,6 +320,36 @@ const AppDrawer: React.FC<Props> = ({ handleOpenSignUpModal, handleOpenSignInMod
                                 </ListItemButton>
                             </ListItem>
                         ))}
+                        {!isAuthenticated && 
+                            <>
+                                <ListItem>
+                                    <Button
+                                        variant="contained"
+                                        color="primary"
+                                        size="large"
+                                        LinkComponent={Link}
+                                        href="/"
+                                        fullWidth
+                                    >
+                                            Start Writing
+                                        </Button>
+                                </ListItem>
+                                <ListItem>
+                                    <Button
+                                        variant="outlined"
+                                        color="primary"
+                                        size="large"
+                                        onClick={() => {
+                                            dispatch(closeDrawer());
+                                            handleOpenSignInModal();
+                                        }}
+                                        fullWidth
+                                    >
+                                        Log In
+                                    </Button>
+                                </ListItem>
+                            </>
+                        }
                     </List>
                 </MuiDrawer>
                 :
