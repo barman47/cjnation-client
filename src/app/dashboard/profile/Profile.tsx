@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { 
     Box, 
     Typography,
@@ -18,17 +18,25 @@ import {
     ListItemIcon,
     ListItemText,
     useTheme,
-    useMediaQuery
+    useMediaQuery,
+    CircularProgress
 } from '@mui/material';
 import { makeStyles } from 'tss-react/mui';
+import _ from 'lodash';
 
-import { selectUser } from '@/redux/features/authSlice';
+import { selectIsUserAuthenticated, selectUser } from '@/redux/features/authSlice';
 import { PRIMARY_COLOR } from '@/app/theme';
-import { ContentCut, DeleteOutline, PencilOutline } from 'mdi-material-ui';
+import { ContentCut, DeleteOutline, EyeOutline, NewspaperVariantMultipleOutline, PencilOutline } from 'mdi-material-ui';
 import { capitalize } from '@/utils/capitalize';
 import ProfilePost from './ProfilePost';
 import ProfileUpdateModal from './ProfileUpdateModal';
-import { ModalRef } from '@/utils/constants';
+import { ModalRef, PostStatus } from '@/utils/constants';
+import { AppDispatch } from '@/redux/store';
+import { clearError, deletePost, getPostsForUser, publishPost, selectIsPostLoading, selectPostErrors, selectPostMessage, selectPosts, setPost, setPostMessage } from '@/redux/features/postsSlice';
+import { setToast } from '@/redux/features/appSlice';
+import { Post } from '@/interfaces';
+import moment from 'moment';
+import { useRouter } from 'next/navigation';
 
 interface TabPanelProps {
     children?: React.ReactNode;
@@ -58,11 +66,10 @@ function CustomTabPanel(props: TabPanelProps) {
   
   function a11yProps(index: number) {
     return {
-      id: `simple-tab-${index}`,
-      'aria-controls': `simple-tabpanel-${index}`,
+        id: `simple-tab-${index}`,
+        'aria-controls': `simple-tabpanel-${index}`,
     };
   }
-
 
 const useStyles = makeStyles()((theme: Theme) => ({
     title: {
@@ -96,12 +103,23 @@ const useStyles = makeStyles()((theme: Theme) => ({
 
 const Profile: React.FC<{}> = () => {
     const { classes } = useStyles();
+    const dispatch: AppDispatch = useDispatch();
+    const router = useRouter();
     const theme = useTheme();
     const matches = useMediaQuery(theme.breakpoints.down('sm'));
 
+    const loading = useSelector(selectIsPostLoading);
+    const posts = useSelector(selectPosts);
+    const postErrors = useSelector(selectPostErrors);
+    const msg = useSelector(selectPostMessage);
     const user = useSelector(selectUser);
+    const isAuthenticated = useSelector(selectIsUserAuthenticated);
 
     const [value, setValue] = React.useState(0);
+    const [showEdit, setShowEdit] = React.useState(false);
+    const [showPublish, setShowPublish] = React.useState(false);
+    const [showViewPost, setShowViewPost] = React.useState(false);
+    const [postId, setPostId] = React.useState('');
 
     const profileUpdateModalRef = React.useRef<ModalRef | null>(null);
 
@@ -111,12 +129,82 @@ const Profile: React.FC<{}> = () => {
 
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const open = Boolean(anchorEl);
+
+    React.useEffect(() => {
+        if (isAuthenticated) {
+            dispatch(getPostsForUser());
+        }
+    }, [dispatch, isAuthenticated]);
+
+    React.useEffect(() => {
+        if (msg) {
+            dispatch(setToast({
+                type: 'success',
+                message: msg
+            }));
+            dispatch(setPostMessage(null));
+        }
+    }, [dispatch, msg]);
+
+    // Handle API error response
+    React.useEffect(() => {
+        if (!_.isEmpty(postErrors)) {
+            dispatch(setToast({
+                type: 'error',
+                message: postErrors.msg!
+            }));
+            dispatch(clearError());
+        }
+    }, [postErrors, dispatch]);
     
-    const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    const handleClick = (event: React.MouseEvent<HTMLButtonElement>, postId: string, postStatus: PostStatus) => {
+        setPostId(postId);
+        if (postStatus === PostStatus.DRAFT) {
+            setShowEdit(true);
+            setShowPublish(true);
+        }
+        if (postStatus === PostStatus.APPROVED) {
+            setShowViewPost(true);
+        }
+
         setAnchorEl(event.currentTarget);
     };
+
     const handleClose = () => {
+        if (showEdit) {
+            setShowEdit(false);
+        }
+        if (showPublish) {
+            setShowPublish(false);
+        }
+        if (showViewPost) {
+            setShowViewPost(false);
+        }
+        setPostId('');
         setAnchorEl(null);
+    };
+
+    const handleDeletePost = (): void => {
+        if (confirm('Delete this post? This action is not reversible.')) {
+            dispatch(deletePost(postId));
+        }
+        handleClose();
+    };
+
+    const handleEditPost = (): void => {
+        const post = posts.find((item: Post) => item._id === postId)!;
+        dispatch(setPost(post));
+        router.push(`/dashboard/posts/edit/${postId}`);
+    };
+
+    const handlePublishPost = (): void => {
+        dispatch(publishPost(postId));
+        handleClose();
+    };
+
+    const handleViewPost = (): void => {
+        const post = posts.find((item: Post) => item._id === postId)!;
+        router.push(`/posts/${post?.slug}/${post._id}`);
     };
 
     return (
@@ -156,33 +244,36 @@ const Profile: React.FC<{}> = () => {
                         <Tab sx={{ textTransform: 'none' }} label="Drafts" disableRipple disableFocusRipple {...a11yProps(1)} />
                     </Tabs>
                     <CustomTabPanel value={value} index={0}>
-                        <ProfilePost
-                            title="Doing business in the 21st Century: Adaptation and Innovation"
-                            createdAt="8 days ago"
-                            handleClick={handleClick}
-                        />
-                        <ProfilePost
-                            title="Doing business in the 21st Century: Adaptation and Innovation"
-                            createdAt="8 days ago"
-                            handleClick={handleClick}
-                        />
-                        <ProfilePost
-                            title="Doing business in the 21st Century: Adaptation and Innovation"
-                            createdAt="8 days ago"
-                            handleClick={handleClick}
-                        />
+                        {loading && <CircularProgress />}
+                        {posts.map((post: Post) => {
+                            if (post.status === PostStatus.APPROVED || post.status === PostStatus.PUBLISHED) {
+                                return (
+                                    <ProfilePost
+                                        key={post._id}
+                                        title={post.title}
+                                        createdAt={moment(post.createdAt).fromNow()}
+                                        handleClick={(e) => handleClick(e, post._id!, post.status)}
+                                        loading={loading}
+                                    />
+                                );
+                            }
+                        })}
                     </CustomTabPanel>
                     <CustomTabPanel value={value} index={1}>
-                        <ProfilePost
-                            title="Doing business in the 21st Century: Adaptation and Innovation"
-                            createdAt="8 days ago"
-                            handleClick={handleClick}
-                        />
-                        <ProfilePost
-                            title="Doing business in the 21st Century: Adaptation and Innovation"
-                            createdAt="8 days ago"
-                            handleClick={handleClick}
-                        />
+                        {loading && <CircularProgress />}
+                        {posts.map((post: Post) => {
+                            if (post.status === PostStatus.DRAFT) {
+                                return (
+                                    <ProfilePost
+                                        key={post._id}
+                                        title={post.title}
+                                        createdAt={moment(post.createdAt).fromNow()}
+                                        handleClick={(e) => handleClick(e, post._id!, post.status)}
+                                        loading={loading}
+                                    />
+                                );
+                            }
+                        })}
                     </CustomTabPanel>
                 </Box>
                 <Paper sx={{ width: 320, maxWidth: '100%' }}>
@@ -192,13 +283,25 @@ const Profile: React.FC<{}> = () => {
                         onClose={handleClose}
                     >
                     <MenuList>
-                        <MenuItem>
+                        <MenuItem onClick={handleViewPost} disabled={!showViewPost}>
+                            <ListItemIcon>
+                                <EyeOutline fontSize="medium" />
+                            </ListItemIcon>
+                            <ListItemText>View Post</ListItemText>
+                        </MenuItem>
+                        <MenuItem onClick={handleEditPost} disabled={!showEdit}>
                             <ListItemIcon>
                                 <ContentCut fontSize="medium" />
                             </ListItemIcon>
                             <ListItemText>Edit Post</ListItemText>
                         </MenuItem>
-                        <MenuItem>
+                        <MenuItem onClick={handlePublishPost} disabled={!showPublish}>
+                            <ListItemIcon>
+                                <NewspaperVariantMultipleOutline fontSize="medium" />
+                            </ListItemIcon>
+                            <ListItemText>Publish Post</ListItemText>
+                        </MenuItem>
+                        <MenuItem onClick={handleDeletePost}>
                             <ListItemIcon sx={{ color: theme.palette.error.main }}>
                                 <DeleteOutline fontSize="medium" />
                             </ListItemIcon>

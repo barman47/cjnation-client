@@ -11,7 +11,7 @@ import './globals.css'
 import { PAGE_TITLE } from '@/utils/constants';
 
 export const metadata: Metadata = {
-    title: `Home | ${PAGE_TITLE}`
+    title: PAGE_TITLE
 };
 
 interface Props {

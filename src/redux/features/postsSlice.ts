@@ -53,10 +53,41 @@ export const getPostsByCategory = createAsyncThunk<ApiResponse, string, { reject
     }
 });
 
+export const getPostsForUser = createAsyncThunk<ApiResponse, void, { rejectValue: ApiErrorResponse }>('posts/getPostsForUser', async (_, { rejectWithValue }) => {
+    try {
+        const res = await axios.get<ApiResponse>(`${URL}/user/posts`);
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to get user\'s posts');
+    }
+});
+
+export const publishPost = createAsyncThunk<ApiResponse, string, { rejectValue: ApiErrorResponse }>('posts/publishPost', async (postId, { rejectWithValue }) => {
+    try {
+        const res = await axios.patch<ApiResponse>(`${URL}/publishPost/${postId}`);
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to publish post');
+    }
+});
+
+export const deletePost = createAsyncThunk<ApiResponse, string, { rejectValue: ApiErrorResponse }>('posts/deletePost', async (postId, { rejectWithValue }) => {
+    try {
+        const res = await axios.delete<ApiResponse>(`${URL}/${postId}`);
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to delete post');
+    }
+});
+
 export const posts = createSlice({
     name: 'posts',
     initialState,
     reducers: {
+        setPost: (state, action: PayloadAction<Post>) => {
+            state.post = action.payload;
+        },
+
         setPostMessage: (state, action: PayloadAction<string | null>) => {
             state.msg = action.payload;
         },
@@ -109,12 +140,54 @@ export const posts = createSlice({
             state.error = action.payload?.data;
         })
 
-        
+        .addCase(getPostsForUser.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(getPostsForUser.fulfilled, (state, action) => {
+            state.isLoading = false;
+            state.posts = [...action.payload.data];
+        })
+        .addCase(getPostsForUser.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
+
+        .addCase(publishPost.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(publishPost.fulfilled, (state, action) => {
+            const post = action.payload.data;
+            const posts = [...state.posts];
+            const postIndex = posts.findIndex((item: Post) => item._id === post._id);
+            posts.splice(postIndex, 1, post);
+            state.isLoading = false;
+            state.posts = [...posts];
+            state.msg = action.payload.msg || 'Post published successfully';
+        })
+        .addCase(publishPost.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
+
+        .addCase(deletePost.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(deletePost.fulfilled, (state, action) => {
+            const post = action.payload.data;
+            state.posts = state.posts.filter((item: Post) => post._id !== item._id);
+            state.msg = action.payload.msg || 'Post deleted successfully';
+            state.isLoading = false;
+        })
+        .addCase(deletePost.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
     }
 });
 
 export const {
     clearError,
+    setPost,
     setPosts,
     setPostMessage,
 } = posts.actions;

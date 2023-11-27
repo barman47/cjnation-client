@@ -4,12 +4,6 @@ import { Divider, IconButton, Stack, Tooltip, Typography, useMediaQuery, useThem
 import { DotsHorizontal } from 'mdi-material-ui';
 import { makeStyles } from 'tss-react/mui';
 
-interface Props {
-    title: string;
-    createdAt: string;
-    handleClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
-}
-
 const useStyles = makeStyles()(() => ({
     title: {
         fontWeight: 500,
@@ -24,7 +18,14 @@ const useStyles = makeStyles()(() => ({
     }
 }));
 
-const  ProfilePost: React.FC<Props> = ({ title, createdAt, handleClick }) => {
+interface Props {
+    title: string;
+    createdAt: string;
+    loading: boolean;
+    handleClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
+}
+
+const  ProfilePost: React.FC<Props> = ({ loading, title, createdAt, handleClick }) => {
     const { classes } = useStyles();
     const theme = useTheme();
     const matches = useMediaQuery(theme.breakpoints.down('sm'));
@@ -42,6 +43,7 @@ const  ProfilePost: React.FC<Props> = ({ title, createdAt, handleClick }) => {
                         disableRipple
                         disableTouchRipple
                         onClick={handleClick}
+                        disabled={loading}
                     >
                         <DotsHorizontal />
                     </IconButton>
