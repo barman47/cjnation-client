@@ -13,6 +13,7 @@ const CategorySchema = new Schema<Category>({
     name: {
         type: String,
         required: [true, 'Category name is required!'],
+        lowercase: true,
         trim: true
     },
 
