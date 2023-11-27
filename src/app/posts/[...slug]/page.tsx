@@ -4,9 +4,39 @@ import Post from './Post';
 import CommentsForm from './CommentsForm';
 import CommentsList from './CommentsList';
 import { notFound } from 'next/navigation';
+import { Metadata } from 'next';
+import { Post as PostData } from '@/interfaces';
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+    const { slug } = params;
+
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API}/posts/${slug[1]}/${slug[0]}`);
+    const data = await res.json();
+    const post: PostData = data.data;
+
+    const  title = post.title;
+    const  description = post.title.slice(0, 161);
+   
+    return {
+        title: post.title,
+        description: post.title.slice(0, 161),
+        openGraph: {
+            images: [post.mediaUrl!],
+        },
+        twitter: {
+            title,
+            card: "summary",
+            description,
+            creator: 'CJ Nation',
+            images: {
+                url: post.mediaUrl!,
+                alt: post.slug,
+            }
+        }
+    }
+}
 
 async function getPost (slug: string, id: string) {
-
 	const res = await fetch(`${process.env.NEXT_PUBLIC_API}/posts/${id}/${slug}`, { cache: 'no-store' });
    
 	if (!res.ok) {
