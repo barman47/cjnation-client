@@ -8,7 +8,7 @@ import { get, post, del, controller, patch, use } from './decorators';
 import { validateCreateDraft, validateCreatePost } from '../utils/validation/posts';
 import { sendServerResponse } from '../utils/sendServerResponse';
 import { getFileNameExtension } from '../utils/getFileNameExtenstion';
-import { uploadFile } from '../utils/googleCloudStorage';
+import { deleteFile, uploadFile } from '../utils/googleCloudStorage';
 import { PostStatus, Role } from '../utils/constants';
 
 @controller('/posts')
@@ -30,7 +30,6 @@ export class PostsController {
                     msg: 'Invalid post data!',
                 });
             }
-
 
             const fileNameExtension = getFileNameExtension(file.name);
             const uploadResponse = await uploadFile(file.tempFilePath, `posts/${new mongoose.Types.ObjectId()}.${fileNameExtension}`);
@@ -113,6 +112,38 @@ export class PostsController {
         }
     }
 
+    @get('/featured/posts')
+    async getFeaturedPosts(_req: Request, res: Response) {
+        try {
+            const posts = await PostModel.find().sort({ createdAt: 'desc' }).limit(5).exec();
+            
+            return sendServerResponse(res, {
+                success: true,
+                statusCode: 200,
+                data: posts,
+                count: posts.length
+            });
+        } catch (err) {
+            return returnError(err, res, 500, 'Failed to get featured posts');
+        }
+    }
+
+    @use(protect)
+    @get('/user/posts')
+    async getPostsForUser (req: Request, res: Response) {
+        try {
+            const posts = await PostModel.find({ author: req.user._id }).sort({ createdAt: 'desc' }).exec();
+            return sendServerResponse(res, {
+                success: true,
+                statusCode: 200,
+                data: posts,
+                count: posts.length
+            });
+        } catch (err) {
+            return returnError(err, res, 500, 'Failed to get posts for user');
+        }
+    }
+
     @get('/categories/category/:categoryId')
     async getPostsByCategory(req: Request, res: Response) {
         try {
@@ -170,12 +201,12 @@ export class PostsController {
 
     @use(authorize(Role.ADMIN))
     @use(protect)
-    @patch('/acceptPost/:postId')
+    @patch('/approvePost/:postId')
     async approvePost(req: Request, res: Response) {
         try {
             const acceptedPost = await PostModel.updateOne({ _id: req.params.postId }, { $set: { status: PostStatus.APPROVED, approvedAt: new Date(), approvedBy: req.user._id } }, { new: true });
 
-            // Send email approval post with link to post in email
+            // TODO Send email approval post with link to post in email
 
             return sendServerResponse(res, {
                 success: true,
@@ -195,7 +226,7 @@ export class PostsController {
         try {
             const acceptedPost = await PostModel.updateOne({ _id: req.params.postId }, { $set: { status: PostStatus.REJECTED, rejectedAt: new Date(), rejectedBy: req.user._id } }, { new: true });
 
-            // Send post rejection email
+            // TODO Send post rejection email
 
             return sendServerResponse(res, {
                 success: true,
@@ -205,6 +236,25 @@ export class PostsController {
             });
         } catch (err) {
             return returnError(err, res, 500, 'Failed to reject post');
+        }
+    }
+
+    @use(protect)
+    @patch('/publishPost/:postId')
+    async publishPost(req: Request, res: Response) {
+        try {
+            const publishedPost = await PostModel.findOneAndUpdate({ _id: req.params.postId }, { $set: { status: PostStatus.PUBLISHED } }, { new: true });
+
+            // TODO Send publication email to admin
+
+            return sendServerResponse(res, {
+                success: true,
+                statusCode: 200,
+                data: publishedPost,
+                msg: 'Post published successfully'
+            });
+        } catch (err) {
+            return returnError(err, res, 500, 'Failed to publish post');
         }
     }
 
@@ -222,16 +272,20 @@ export class PostsController {
                 });
             }
 
-            // Check if author owns post or it user is admin before deleting
+            // TODO Check if author owns post or it user is admin before deleting
             // if (req.user._id.equals(req.params.id)) {
 
             // }
+            if (post.mediaName) {
+                await deleteFile(post.mediaName);
+            }
             await PostModel.findOneAndDelete({ _id: req.params.id });
 
             return sendServerResponse(res, {
                 success: true,
                 statusCode: 200,
-                msg: 'Post deleted successfully'
+                msg: 'Post deleted successfully',
+                data: post
             });
 
         } catch (err) {
