@@ -1,5 +1,4 @@
 import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
 
 import Home from './(home)';
 import { PAGE_TITLE } from '@/utils/constants';
@@ -10,7 +9,7 @@ export const metadata: Metadata = {
 };
 
 async function getPostCategories () {
-	const res = await fetch(`${process.env.NEXT_PUBLIC_API}/categories/post`)
+	const res = await fetch(`${process.env.NEXT_PUBLIC_API}/categories/post`);
    
 	if (!res.ok) {
 	  // This will activate the closest `error.js` Error Boundary

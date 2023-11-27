@@ -32,6 +32,7 @@ import { clearCategoriesErrors, getCategoriesByType, selectCategoires, selectCat
 import { Category } from '@/interfaces';
 import { getCategoryId } from '@/utils/getCategoryId';
 import PostSuccessModal from '@/components/common/PostSuccessModal';
+import { capitalize } from '@/utils/capitalize';
 
 const useStyles = makeStyles()((theme) => ({
     imageContainer: {
@@ -210,7 +211,7 @@ const CreatePostForm: React.FC<{}> = () => {
                         >
                             <MenuItem value="" disabled selected>Choose a category</MenuItem>
                             {categories?.length && categories.map((category: Category) => (
-                                <MenuItem key={category._id} value={category.name}>{category.name}</MenuItem>
+                                <MenuItem key={category._id} value={capitalize(category.name)}>{capitalize(category.name)}</MenuItem>
                             ))}
                         </Select>
                         <FormHelperText sx={{ color: '#d32f2f' }}>{typeof errors.category === 'string' ? errors.category : ''}</FormHelperText>
