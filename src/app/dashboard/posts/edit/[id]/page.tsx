@@ -1,9 +1,14 @@
-const EditPage: React.FC<{}> = () => {
-    return (
-        <div>
-            <h1>Edit Post</h1>
-        </div>
-    );
+import { PAGE_TITLE } from '@/utils/constants';
+import { Metadata } from 'next';
+
+import EditPost from './EditPost';
+
+export const metadata: Metadata = {
+    title: `Edit Post | ${PAGE_TITLE}`
 };
 
-export default EditPage;
+const EditPostPage: React.FC<{}> = () => {
+    return (<EditPost />);
+};
+
+export default EditPostPage;

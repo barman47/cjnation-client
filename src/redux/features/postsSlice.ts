@@ -26,12 +26,30 @@ const initialState: AuthState = {
     error: {} as PostError
 };
 
+export const getPost = createAsyncThunk<ApiResponse, string, { rejectValue: ApiErrorResponse }>('posts/getPost', async (postId, { rejectWithValue }) => {
+    try {
+        const res = await axios.get<ApiResponse>(`${URL}/${postId}`);
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to get post');
+    }
+});
+
 export const createDraft = createAsyncThunk<ApiResponse, FormData, { rejectValue: ApiErrorResponse }>('posts/createDraft', async (draft, { rejectWithValue }) => {
     try {
         const res = await axios.post<ApiResponse>(`${URL}/drafts`, draft);
         return res.data;
     } catch (err) {
         return handleError(err, rejectWithValue, 'Failed to save post');
+    }
+});
+
+export const saveDraft = createAsyncThunk<ApiResponse, {draft: FormData, postId: string }, { rejectValue: ApiErrorResponse }>('posts/saveDraft', async ({ draft, postId}, { rejectWithValue }) => {
+    try {
+        const res = await axios.patch<ApiResponse>(`${URL}/drafts/save/${postId}`, draft);
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to save draft');
     }
 });
 
@@ -62,6 +80,15 @@ export const getPostsForUser = createAsyncThunk<ApiResponse, void, { rejectValue
     }
 });
 
+export const editPost = createAsyncThunk<ApiResponse, { post: FormData, postId: string }, { rejectValue: ApiErrorResponse }>('posts/editPost', async ({ post, postId}, { rejectWithValue }) => {
+    try {
+        const res = await axios.put<ApiResponse>(`${URL}/${postId}`, post);
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to save post');
+    }
+});
+
 export const publishPost = createAsyncThunk<ApiResponse, string, { rejectValue: ApiErrorResponse }>('posts/publishPost', async (postId, { rejectWithValue }) => {
     try {
         const res = await axios.patch<ApiResponse>(`${URL}/publishPost/${postId}`);
@@ -77,6 +104,15 @@ export const deletePost = createAsyncThunk<ApiResponse, string, { rejectValue: A
         return res.data;
     } catch (err) {
         return handleError(err, rejectWithValue, 'Failed to delete post');
+    }
+});
+
+export const removePostImage = createAsyncThunk<ApiResponse, { postId: string; mediaName: string }, { rejectValue: ApiErrorResponse }>('posts/removePostImage', async ({ postId, mediaName }, { rejectWithValue }) => {
+    try {
+        const res = await axios.patch<ApiResponse>(`${URL}/image/remove/${postId}`, { mediaName });
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to remove post image');
     }
 });
 
@@ -102,7 +138,32 @@ export const posts = createSlice({
     },
     extraReducers(builder) {
         builder
+        .addCase(getPost.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(getPost.fulfilled, (state, action) => {
+            state.isLoading = false;
+            state.post = action.payload.data;
+        })
+        .addCase(getPost.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
+
         .addCase(createDraft.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(editPost.fulfilled, (state, action) => {
+            state.isLoading = false;
+            state.post = action.payload.data;
+            state.msg = action.payload.msg || 'Your blog has been saved succcessfully. You can always come back and continue writing.';
+        })
+        .addCase(editPost.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
+
+        .addCase(editPost.pending, (state) => {
             state.isLoading = true;
         })
         .addCase(createDraft.fulfilled, (state, action) => {
@@ -111,6 +172,19 @@ export const posts = createSlice({
             state.msg = action.payload.msg || 'Your blog has been saved succcessfully. You can always come back and continue writing.';
         })
         .addCase(createDraft.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
+
+        .addCase(saveDraft.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(saveDraft.fulfilled, (state, action) => {
+            state.isLoading = false;
+            state.post = action.payload.data;
+            state.msg = action.payload.msg || 'Your blog has been saved succcessfully. You can always come back and continue writing.';
+        })
+        .addCase(saveDraft.rejected, (state, action) => {
             state.isLoading = false;
             state.error = action.payload?.data;
         })
@@ -179,6 +253,18 @@ export const posts = createSlice({
             state.isLoading = false;
         })
         .addCase(deletePost.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
+
+        .addCase(removePostImage.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(removePostImage.fulfilled, (state, action) => {
+            state.post = action.payload.data
+            state.isLoading = false;
+        })
+        .addCase(removePostImage.rejected, (state, action) => {
             state.isLoading = false;
             state.error = action.payload?.data;
         })
