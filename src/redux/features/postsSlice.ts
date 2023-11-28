@@ -125,6 +125,24 @@ export const removePostImage = createAsyncThunk<ApiResponse, { postId: string; m
     }
 });
 
+export const approvePost = createAsyncThunk<ApiResponse, string , { rejectValue: ApiErrorResponse }>('posts/approvePost', async (postId, { rejectWithValue }) => {
+    try {
+        const res = await axios.patch<ApiResponse>(`${URL}/approvePost/${postId}`);
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to approve post');
+    }
+});
+
+export const rejectPost = createAsyncThunk<ApiResponse, { postId: string; rejectionReason: string }, { rejectValue: ApiErrorResponse }>('posts/rejectPost', async ({ postId, rejectionReason }, { rejectWithValue }) => {
+    try {
+        const res = await axios.patch<ApiResponse>(`${URL}/rejectPost/${postId}`, { rejectionReason });
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to reject post');
+    }
+});
+
 export const posts = createSlice({
     name: 'posts',
     initialState,
@@ -286,6 +304,30 @@ export const posts = createSlice({
             state.isLoading = false;
         })
         .addCase(removePostImage.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
+
+        .addCase(approvePost.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(approvePost.fulfilled, (state, action) => {
+            state.isLoading = false;
+            state.msg = action.payload.msg || 'Post approved successfully'
+        })
+        .addCase(approvePost.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
+
+        .addCase(rejectPost.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(rejectPost.fulfilled, (state, action) => {
+            state.isLoading = false;
+            state.msg = action.payload.msg || 'Post rejected successfully'
+        })
+        .addCase(rejectPost.rejected, (state, action) => {
             state.isLoading = false;
             state.error = action.payload?.data;
         })

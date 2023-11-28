@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useParams } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     Box,
@@ -13,7 +14,6 @@ import CreatePostForm from '../../create/CreatePostForm';
 import Loading from '@/components/common/Loading';
 import { getPost, selectIsPostLoading, selectPost } from '@/redux/features/postsSlice';
 import { AppDispatch } from '@/redux/store';
-import { useParams } from 'next/navigation';
 
 const useStyles = makeStyles()(theme => ({
     title: {

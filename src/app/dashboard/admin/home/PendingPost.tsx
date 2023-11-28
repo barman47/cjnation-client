@@ -14,9 +14,10 @@ import moment from 'moment';
 
 interface Props {
     post: Post;
+    handleReviewPost: (post: Post) => void;
 }
 
-const PendingPost: React.FC<Props> = ({ post }) => {
+const PendingPost: React.FC<Props> = ({ post, handleReviewPost }) => {
     const [showButton, setShowButton] = React.useState(false);
 
     return (
@@ -40,6 +41,7 @@ const PendingPost: React.FC<Props> = ({ post }) => {
                     color="secondary"
                     size="large"
                     sx={{ visibility: showButton ? 'visible' : 'hidden' }}
+                    onClick={() => handleReviewPost(post)}
                 >
                     Review
                 </Button>
