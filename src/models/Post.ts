@@ -1,6 +1,8 @@
 import { Document, Schema, Types, model } from 'mongoose';
 
 import { PostStatus } from '../utils/constants';
+import { generateSlug } from '../utils/generateSlug';
+import { generateReadDuration } from '../utils/generateReadDuration';
 
 export interface Post extends Document {
     category: Types.ObjectId | string;
@@ -107,17 +109,8 @@ const PostSchema = new Schema<Post>({
 
 // Generate slug and readTime for the post
 PostSchema.pre('save', async function(next) {
-    if (!this.isModified('title')) {
-        next();
-    }
-    const slug = this.title.split(' ').join('-');
-    this.slug = slug;
-
-    const text = this.body;
-    const wpm = 225;
-    const words = text.trim().split(/\s+/).length;
-    const time = Math.ceil(words / wpm);
-    this.readDuration = time;
+    this.slug = generateSlug(this.title);
+    this.readDuration = generateReadDuration(this.body);
     next();
 });
 

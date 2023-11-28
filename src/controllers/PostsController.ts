@@ -4,12 +4,14 @@ import mongoose from 'mongoose';
 import PostModel from '../models/Post';
 import { authorize, protect } from '../utils/auth';
 import { returnError } from '../utils/returnError';
-import { get, post, del, controller, patch, use } from './decorators';
+import { get, post, del, controller, patch, use, put } from './decorators';
 import { validateCreateDraft, validateCreatePost } from '../utils/validation/posts';
 import { sendServerResponse } from '../utils/sendServerResponse';
 import { getFileNameExtension } from '../utils/getFileNameExtenstion';
 import { deleteFile, uploadFile } from '../utils/googleCloudStorage';
 import { PostStatus, Role } from '../utils/constants';
+import { generateReadDuration } from '../utils/generateReadDuration';
+import { generateSlug } from '../utils/generateSlug';
 
 @controller('/posts')
 export class PostsController {
@@ -91,10 +93,73 @@ export class PostsController {
         }
     }
 
+    @use(protect)
+    @patch('/drafts/save/:id')
+    async saveDraft(req: Request, res: Response) {
+        try {
+            const { errors, isValid } = validateCreateDraft(req.body);
+
+            if (!isValid) {
+                return sendServerResponse(res, { 
+                    statusCode: 400, 
+                    success: false, 
+                    errors,
+                    msg: 'Invalid post data!',
+                });
+            }
+
+            const file = req.files?.image;
+
+            if (file) {
+                const post = await PostModel.findOne({ _id: req.params.id, status: PostStatus.DRAFT });
+
+                if (!post) {
+                    return sendServerResponse(res, { 
+                        statusCode: 404, 
+                        success: false, 
+                        errors: { msg: 'Post does not exist' }
+                    });   
+                }
+
+                if (post.mediaName) {
+                    await deleteFile(post.mediaName);
+                }
+
+                const fileNameExtension = getFileNameExtension(file.name);
+                const uploadResponse = await uploadFile(file.tempFilePath, `posts/${new mongoose.Types.ObjectId()}.${fileNameExtension}`);
+
+                const updatedDraft = await PostModel.findOneAndUpdate({ _id: req.params.id, status: PostStatus.DRAFT },{ $set: {...req.body, readDuration: generateReadDuration(req.body.body), slug: generateSlug(req.body.title), mediaName: uploadResponse.name, mediaUrl: uploadResponse.url} }, { new: true })
+                    .populate({ path: 'category', select: 'name' })
+                    .exec();
+
+                return sendServerResponse(res, {
+                    statusCode: 200, 
+                    success: true, 
+                    data: updatedDraft,
+                    msg: 'Your blog has been saved succcessfully. You can always come back and continue writing.'
+                });
+            }
+
+            const updatedDraft = await PostModel.findOneAndUpdate({ _id: req.params.id, status: PostStatus.DRAFT },{ $set: {...req.body, readDuration: generateReadDuration(req.body.body), slug: generateSlug(req.body.title), } }, { new: true })
+                    .populate({ path: 'category', select: 'name' })
+                    .exec();
+
+            return sendServerResponse(res, {
+                statusCode: 200, 
+                success: true, 
+                data: updatedDraft,
+                msg: 'Your blog has been saved succcessfully. You can always come back and continue writing.'
+            });
+        } catch (err) {
+            return returnError(err, res, 500, 'Failed to save post');
+        }
+    }
+
+    @use(protect)
     @get('/:id')
     async getPost(req: Request, res: Response) {
         try {
-            const post = await PostModel.findOne({ slug: req.params.id });
+            const post = await PostModel.findById(req.params.id).populate({ path: 'category', select: 'name' }).exec();
             if (!post) {
                 return sendServerResponse(res, {
                     success: false,
@@ -115,7 +180,7 @@ export class PostsController {
     @get('/featured/posts')
     async getFeaturedPosts(_req: Request, res: Response) {
         try {
-            const posts = await PostModel.find().sort({ createdAt: 'desc' }).limit(5).exec();
+            const posts = await PostModel.find({ status: PostStatus.APPROVED }).populate({ path: 'category', select: 'name' }).sort({ createdAt: 'desc' }).limit(5).exec();
             
             return sendServerResponse(res, {
                 success: true,
@@ -132,7 +197,7 @@ export class PostsController {
     @get('/user/posts')
     async getPostsForUser (req: Request, res: Response) {
         try {
-            const posts = await PostModel.find({ author: req.user._id }).sort({ createdAt: 'desc' }).exec();
+            const posts = await PostModel.find({ author: req.user._id }).populate({ path: 'category', select: 'name' }).sort({ createdAt: 'desc' }).exec();
             return sendServerResponse(res, {
                 success: true,
                 statusCode: 200,
@@ -190,12 +255,64 @@ export class PostsController {
     }
 
     @use(protect)
-    @patch('/')
-    async updatePost(_req: Request, res: Response) {
+    @put('/:id')
+    async updatePost(req: Request, res: Response) {
         try {
+            const { errors, isValid } = validateCreatePost(req.body);
 
+            if (!isValid) {
+                return sendServerResponse(res, { 
+                    statusCode: 400, 
+                    success: false, 
+                    errors,
+                    msg: 'Invalid post data!',
+                });
+            }
+
+            const file = req.files?.image;
+
+            if (file) {
+                const post = await PostModel.findOne({ _id: req.params.id });
+
+                if (!post) {
+                    return sendServerResponse(res, { 
+                        statusCode: 404, 
+                        success: false, 
+                        errors: { msg: 'Post does not exist' }
+                    });   
+                }
+
+                if (post.mediaName) {
+                    await deleteFile(post.mediaName);
+                }
+
+                const fileNameExtension = getFileNameExtension(file.name);
+                const uploadResponse = await uploadFile(file.tempFilePath, `posts/${new mongoose.Types.ObjectId()}.${fileNameExtension}`);
+
+                const updatedPost = await PostModel.findOneAndUpdate({ _id: req.params.id },{ $set: {...req.body, readDuration: generateReadDuration(req.body.body), slug: generateSlug(req.body.title), mediaName: uploadResponse.name, mediaUrl: uploadResponse.url} }, { new: true })
+                    .populate({ path: 'category', select: 'name' })
+                    .exec();
+
+                return sendServerResponse(res, {
+                    statusCode: 200, 
+                    success: true, 
+                    data: updatedPost,
+                    msg: 'Your blog has been submitted and will reviewed and approved shortly by an admin'
+                });
+            }
+
+            const updatedDraft = await PostModel.findOneAndUpdate({ _id: req.params.id },{ $set: {...req.body, readDuration: generateReadDuration(req.body.body), slug: generateSlug(req.body.title), } }, { new: true })
+                    .populate({ path: 'category', select: 'name' })
+                    .exec();
+
+            return sendServerResponse(res, {
+                statusCode: 200, 
+                success: true, 
+                data: updatedDraft,
+                msg: 'Your blog has been submitted and will reviewed and approved shortly by an admin'
+            });
         } catch (err) {
-            return returnError(err, res, 500, 'Failed to update post');
+            return returnError(err, res, 500, 'Failed to publish post');
         }
     }
 
@@ -255,6 +372,30 @@ export class PostsController {
             });
         } catch (err) {
             return returnError(err, res, 500, 'Failed to publish post');
+        }
+    }
+
+    @use(protect)
+    @patch('/image/remove/:postId')
+    async removePostImage(req: Request, res: Response) {
+        try {
+            if (!req.body.mediaName) {
+                return sendServerResponse(res, {
+                    success: false,
+                    statusCode: 400,
+                    errors: { msg: 'Post image name is required!' }
+                });
+            }
+            await deleteFile(req.body.mediaName);
+            const updatedPost = await PostModel.findOneAndUpdate({ _id: req.params.postId }, { $unset: { mediaName: 1, mediaUrl: 1 } }, { new: true }).populate({ path: 'category', select: 'name' }).exec();
+
+            return sendServerResponse(res, {
+                success: true,
+                statusCode: 200,
+                data: updatedPost
+            });
+        } catch (err) {
+            return returnError(err, res, 500, 'Failed to delete post image');
         }
     }
 
