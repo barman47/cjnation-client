@@ -7,7 +7,6 @@ import { makeStyles } from 'tss-react/mui';
 import parse from 'html-react-parser';
 import moment from 'moment';
 
-import avatar from '../../../public/assets/avatar.jpeg';
 import { DARK_GREY, LIGHT_GREY, OFF_BLACK } from '../theme';
 import { Post as PostData } from '@/interfaces';
 import { capitalize } from '@/utils/capitalize';

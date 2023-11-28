@@ -35,6 +35,15 @@ export const getPost = createAsyncThunk<ApiResponse, string, { rejectValue: ApiE
     }
 });
 
+export const getPendingPosts = createAsyncThunk<ApiResponse, void, { rejectValue: ApiErrorResponse }>('posts/getPendingPosts', async (_, { rejectWithValue }) => {
+    try {
+        const res = await axios.get<ApiResponse>(`${URL}/pending/posts`);
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to get pending post');
+    }
+});
+
 export const createDraft = createAsyncThunk<ApiResponse, FormData, { rejectValue: ApiErrorResponse }>('posts/createDraft', async (draft, { rejectWithValue }) => {
     try {
         const res = await axios.post<ApiResponse>(`${URL}/drafts`, draft);
@@ -146,6 +155,18 @@ export const posts = createSlice({
             state.post = action.payload.data;
         })
         .addCase(getPost.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
+
+        .addCase(getPendingPosts.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(getPendingPosts.fulfilled, (state, action) => {
+            state.isLoading = false;
+            state.posts = action.payload.data;
+        })
+        .addCase(getPendingPosts.rejected, (state, action) => {
             state.isLoading = false;
             state.error = action.payload?.data;
         })
