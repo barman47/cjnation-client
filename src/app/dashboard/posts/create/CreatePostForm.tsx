@@ -249,7 +249,7 @@ const CreatePostForm: React.FC<Props> = ({ edit }) => {
                             disabled={loading}
                         >
                             <MenuItem value="" disabled selected>Choose a category</MenuItem>
-                            {categories?.length && categories.map((category: Category) => (
+                            {categories?.length > 0 && categories.map((category: Category) => (
                                 <MenuItem key={category._id} value={capitalize(category.name)}>{capitalize(category.name)}</MenuItem>
                             ))}
                         </Select>

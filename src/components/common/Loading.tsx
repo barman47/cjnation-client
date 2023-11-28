@@ -2,14 +2,13 @@ import {
     Backdrop,
     Box,
     CircularProgress,
-    Typography 
 } from '@mui/material';
 
 interface Props {
     text?: string
 }
 
-const Loading: React.FC<Props> = ({ text }) => {
+const Loading: React.FC<Props> = () => {
     return (
         <Box component="div">
             <Backdrop

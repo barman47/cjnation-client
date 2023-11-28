@@ -6,10 +6,10 @@ import PostList from './PostList';
 
 interface Props {
     posts: PostData[];
-    // featuredPosts: PostData[];
+    featuredPosts: PostData[];
 }
 
-const Home:React.FC<Props> = ({ posts }) => {
+const Home:React.FC<Props> = ({ posts, featuredPosts }) => {
     return (
         <>
             <Grid container direction="row" spacing={1}>
@@ -20,11 +20,9 @@ const Home:React.FC<Props> = ({ posts }) => {
                     <Divider orientation="vertical" />
                 </Grid>
                 <Grid item xs={12} lg={3.5}>
-                    <FeaturedPost />
-                    <FeaturedPost />
-                    <FeaturedPost />
-                    <FeaturedPost />
-                    <FeaturedPost />
+                    {featuredPosts.map((post: PostData) => (
+                        <FeaturedPost key={post._id} post={post} />
+                    ))}
                 </Grid>
             </Grid>
         </>
