@@ -16,6 +16,21 @@ import { isEmpty } from '../utils/isEmpty';
 
 @controller('/posts')
 export class PostsController {
+
+    @get('/')
+    async getPostIds(_req: Request, res: Response) {
+        try {
+            const posts = await PostModel.find();
+            return sendServerResponse(res, {
+                success: true,
+                statusCode: 200,
+                data: posts,
+                count: posts.length
+            });
+        } catch (err) {
+            return returnError(err, res, 500, 'Failed to get posts');
+        }
+    }
     @use(protect)
     @post('/')
     async createPost(req: Request, res: Response) {
@@ -118,7 +133,8 @@ export class PostsController {
                     return sendServerResponse(res, { 
                         statusCode: 404, 
                         success: false, 
-                        errors: { msg: 'Post does not exist' }
+                        errors: {  },
+                        msg: 'Post does not exist'
                     });   
                 }
 
@@ -165,7 +181,8 @@ export class PostsController {
                 return sendServerResponse(res, {
                     success: false,
                     statusCode: 404,
-                    errors: { msg: 'Post does not exist' }
+                    errors: {  },
+                    msg: 'Post does not exist'
                 });
             }
             return sendServerResponse(res, {
@@ -181,7 +198,12 @@ export class PostsController {
     @get('/featured/posts')
     async getFeaturedPosts(_req: Request, res: Response) {
         try {
-            const posts = await PostModel.find({ status: PostStatus.APPROVED }).populate({ path: 'category', select: 'name' }).sort({ createdAt: 'desc' }).limit(5).exec();
+            const posts = await PostModel.find({ status: PostStatus.APPROVED })
+                .populate({ path: 'author', select: 'name' })
+                .populate({ path: 'category', select: 'name' })
+                .sort({ createdAt: 'desc' })
+                .limit(5)
+                .exec();
             
             return sendServerResponse(res, {
                 success: true,
@@ -264,7 +286,8 @@ export class PostsController {
                 return sendServerResponse(res, {
                     success: false,
                     statusCode: 404,
-                    errors: { msg: 'Post does not exist' }
+                    errors: {  },
+                    msg: 'Post does not exist'
                 });
             }
             return sendServerResponse(res, {
@@ -301,7 +324,8 @@ export class PostsController {
                     return sendServerResponse(res, { 
                         statusCode: 404, 
                         success: false, 
-                        errors: { msg: 'Post does not exist' }
+                        errors: {  },
+                        msg: 'Post does not exist'
                     });   
                 }
 
@@ -391,6 +415,26 @@ export class PostsController {
     @patch('/publishPost/:postId')
     async publishPost(req: Request, res: Response) {
         try {
+            const post = await PostModel.findOne({ _id: req.params.postId });
+
+            if (!post) {
+                return sendServerResponse(res, {
+                    success: false,
+                    statusCode: 404,
+                    errors: { },
+                    msg: 'Post does not exist'
+                });
+            }
+
+            if (!post.mediaUrl) {
+                return sendServerResponse(res, {
+                    success: false,
+                    statusCode: 400,
+                    errors: {  },
+                    msg: 'Image for post is required!'
+                });
+            }
+
             const publishedPost = await PostModel.findOneAndUpdate({ _id: req.params.postId }, { $set: { status: PostStatus.PUBLISHED } }, { new: true });
 
             // TODO Send publication email to admin
@@ -414,7 +458,8 @@ export class PostsController {
                 return sendServerResponse(res, {
                     success: false,
                     statusCode: 400,
-                    errors: { msg: 'Post image name is required!' }
+                    errors: {  },
+                    msg: 'Post image name is required!'
                 });
             }
             await deleteFile(req.body.mediaName);
@@ -440,7 +485,8 @@ export class PostsController {
                 return sendServerResponse(res, {
                     success: false,
                     statusCode: 404,
-                    errors: { msg: 'Post does not exist' }
+                    errors: {  },
+                    msg: 'Post does not exist'
                 });
             }
 
