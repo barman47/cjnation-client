@@ -85,7 +85,8 @@ const PostSchema = new Schema<Post>({
     },
 
     rejectionReason: {
-        type: String
+        type: String,
+        trim: true
     },
 
     approvedAt: {

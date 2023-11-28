@@ -12,6 +12,7 @@ import { deleteFile, uploadFile } from '../utils/googleCloudStorage';
 import { PostStatus, Role } from '../utils/constants';
 import { generateReadDuration } from '../utils/generateReadDuration';
 import { generateSlug } from '../utils/generateSlug';
+import { isEmpty } from '../utils/isEmpty';
 
 @controller('/posts')
 export class PostsController {
@@ -193,6 +194,28 @@ export class PostsController {
         }
     }
 
+    @use(authorize(Role.ADMIN))
+    @use(protect)
+    @get('/pending/posts')
+    async getPendingPosts(_req: Request, res: Response) {
+        try {
+            const posts = await PostModel.find({ status: PostStatus.PUBLISHED })
+                .populate({ path: 'category', select: 'name' })
+                .populate({ path: 'author', select: 'name avatar' })
+                .sort({ createdAt: 'desc' })
+                .exec();
+            
+            return sendServerResponse(res, {
+                success: true,
+                statusCode: 200,
+                data: posts,
+                count: posts.length
+            });
+        } catch (err) {
+            return returnError(err, res, 500, 'Failed to get pending posts');
+        }
+    }
+
     @use(protect)
     @get('/user/posts')
     async getPostsForUser (req: Request, res: Response) {
@@ -321,7 +344,7 @@ export class PostsController {
     @patch('/approvePost/:postId')
     async approvePost(req: Request, res: Response) {
         try {
-            const acceptedPost = await PostModel.updateOne({ _id: req.params.postId }, { $set: { status: PostStatus.APPROVED, approvedAt: new Date(), approvedBy: req.user._id } }, { new: true });
+            const acceptedPost = await PostModel.findOneAndUpdate({ _id: req.params.postId }, { $set: { status: PostStatus.APPROVED, approvedAt: new Date(), approvedBy: req.user._id } }, { new: true });
 
             // TODO Send email approval post with link to post in email
 
@@ -341,7 +364,15 @@ export class PostsController {
     @patch('/rejectPost/:postId')
     async rejectPost(req: Request, res: Response) {
         try {
-            const acceptedPost = await PostModel.updateOne({ _id: req.params.postId }, { $set: { status: PostStatus.REJECTED, rejectedAt: new Date(), rejectedBy: req.user._id } }, { new: true });
+            if (isEmpty(req.body.rejectionReason)) {
+                return sendServerResponse(res, {
+                    success: false,
+                    statusCode: 400,
+                    errors: { rejectionReason: 'Rejection reason is required!' },
+                    msg: 'Invalid rejection data!'
+                });
+            }
+            const acceptedPost = await PostModel.findOneAndUpdate({ _id: req.params.postId }, { $set: { status: PostStatus.REJECTED, rejectionReason: req.body.rejectionReason, rejectedAt: new Date(), rejectedBy: req.user._id } }, { new: true });
 
             // TODO Send post rejection email
 
