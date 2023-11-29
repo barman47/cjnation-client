@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useDispatch, useSelector } from 'react-redux';
 import { styled, useTheme, Theme, CSSObject } from '@mui/material/styles';
@@ -199,6 +200,7 @@ interface Props {
 
 const AppDrawer: React.FC<Props> = ({ handleOpenSignInModal }: Props) => {
     const dispatch: AppDispatch = useDispatch();
+    const pathname = usePathname();
 
     const isAuthenticated = useSelector(selectIsUserAuthenticated);
     const user = useSelector(selectUser);
@@ -253,9 +255,11 @@ const AppDrawer: React.FC<Props> = ({ handleOpenSignInModal }: Props) => {
                     >
                         <MenuIcon />
                     </IconButton>
-                    <SearchBox 
-                        placeholder="Find what you are looking for"
-                    />
+                    {pathname === '/' && 
+                        <SearchBox 
+                            placeholder="Find what you are looking for"
+                        />
+                    }
                     {(!matches && !isAuthenticated) &&
                         <Box component="div">
                             <Button
@@ -354,6 +358,7 @@ const AppDrawer: React.FC<Props> = ({ handleOpenSignInModal }: Props) => {
                                 </ListItemButton>
                             </ListItem>
                         ))}
+                        <Divider />
                         {user.role === Role.ADMIN && 
                             <>
                                 {adminLinks.map((item: NavLink) => (
@@ -447,6 +452,7 @@ const AppDrawer: React.FC<Props> = ({ handleOpenSignInModal }: Props) => {
                                 </ListItemButton>
                             </ListItem>
                         ))}
+                        <Divider />
                         {user.role === Role.ADMIN && 
                             <>
                                 {adminLinks.map((item: NavLink) => (

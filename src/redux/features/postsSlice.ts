@@ -234,7 +234,7 @@ export const posts = createSlice({
         .addCase(createPost.fulfilled, (state, action) => {
             state.isLoading = false;
             state.post = action.payload.data;
-            state.msg = action.payload.msg || 'Your blog has been submitted and will reviewed and approved shortly by an admin';
+            state.msg = action.payload.msg || 'Your blog has been submitted and will be reviewed and approved shortly by an admin';
         })
         .addCase(createPost.rejected, (state, action) => {
             state.isLoading = false;

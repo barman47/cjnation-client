@@ -46,12 +46,16 @@ const PendingPosts: React.FC<{}> = () => {
 
     return (
         <Box component="div" className={classes.root}>
-            <Typography variant="h6">Pending Posts</Typography>
-            <Stack direction="column" spacing={2} className={classes.container}>
-                {pendingPosts.map((post: Post) => (
-                    <PendingPost key={post._id} post={post} handleReviewPost={handleReviewPost} />
-                ))}
-            </Stack>
+            <Typography variant="h6" sx={{ marginTop: 5 }}>Pending Posts</Typography>
+                {pendingPosts.length ? 
+                    <Stack direction="column" spacing={2} className={classes.container}>
+                        {pendingPosts.map((post: Post) => (
+                            <PendingPost key={post._id} post={post} handleReviewPost={handleReviewPost} />
+                        ))}
+                    </Stack>
+                    :
+                    <Typography variant="body2">There are no posts for review</Typography>
+                }
         </Box >
     );
 };

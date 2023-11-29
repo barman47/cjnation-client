@@ -149,6 +149,7 @@ const ReviewPost: React.FC<{}> = () => {
                                 width={800}
                                 height={1200}
                                 className={classes.image}
+                                loading="lazy"
                             />
                             {parse(post.body)}
                         </Stack>
