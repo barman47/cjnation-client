@@ -23,11 +23,12 @@ import AddMovieModal from './AddMovieModal';
 import { ModalRef } from '@/utils/constants';
 import { setToast } from '@/redux/features/appSlice';
 import { AppDispatch } from '@/redux/store';
-import { clearMovieErrors, getMovies, searchMovies, selectMovieErrors } from '@/redux/features/moviesSlice';
+import { clearMovieErrors, getMovies, searchMovies, selectMovieErrors, setMovie } from '@/redux/features/moviesSlice';
 import AddMusicModal from './AddMusicModal';
-import { clearMusicErrors, getMusics, searchMusic, selectMusicErrors } from '@/redux/features/musicSlice';
+import { clearMusicErrors, getMusics, searchMusic, selectMusicErrors, setMusic } from '@/redux/features/musicSlice';
 import { useQueryState } from 'next-usequerystate';
 import debounce from '@/utils/debounce';
+import { Movie, Music } from '@/interfaces';
 
 function a11yProps(index: number) {
     return {
@@ -128,6 +129,16 @@ const DownloadsManagement: React.FC<{}> = () => {
         addMusicModalRef.current?.openModal()
     };
 
+    const handleEditMovie = (movie: Movie) => {
+        dispatch(setMovie(movie));
+        handleOpenAddMovieModal();
+    };
+
+    const handleEditMusic = (music: Music) => {
+        dispatch(setMusic(music));
+        handleOpenAddMusicModal();
+    };
+
     return (
         <>
             <AddMovieModal ref={addMovieModalRef} />
@@ -179,10 +190,10 @@ const DownloadsManagement: React.FC<{}> = () => {
                     </Stack>
                 </Stack>
                 <CustomTabPanel value={value} index={0}>
-                    <MoviesTable />
+                    <MoviesTable handleEditMovie={handleEditMovie} />
                 </CustomTabPanel>
                 <CustomTabPanel value={value} index={1}>
-                    <MusicTable />
+                    <MusicTable handleEditMusic={handleEditMusic} />
                 </CustomTabPanel>
             </Box>
         </>

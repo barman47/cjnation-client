@@ -30,8 +30,8 @@ import { Close, CloudUploadOutline } from 'mdi-material-ui';
 
 import { setToast } from '@/redux/features/appSlice';
 import { AppDispatch } from '@/redux/store';
-import { AddMovieData, validateAddMovie } from '@/utils/validation/movie';
-import { addMovie, selectIsMovieLoading, selectMovieErrors, clearMovieErrors, selectMoviesMessage, setMoviesMessage } from '@/redux/features/moviesSlice';
+import { AddMovieData, EditMovieData, validateAddMovie, validateEditMovie } from '@/utils/validation/movie';
+import { addMovie, selectIsMovieLoading, selectMovieErrors, clearMovieErrors, selectMoviesMessage, setMoviesMessage, selectMovie, setMovie, editMovie } from '@/redux/features/moviesSlice';
 import { capitalize } from '@/utils/capitalize';
 import { Category, Movie } from '@/interfaces';
 import { getCategoriesByType, selectCategoires } from '@/redux/features/categoriesSlice';
@@ -95,6 +95,7 @@ const AddMovieModal: React.FC<Props> = React.forwardRef<ModalRef, Props>((_props
     const theme = useTheme();
 
     const categories = useSelector(selectCategoires);
+    const movie = useSelector(selectMovie);
     const movieErrors = useSelector(selectMovieErrors);
     const loading = useSelector(selectIsMovieLoading);
     const msg = useSelector(selectMoviesMessage);
@@ -114,10 +115,11 @@ const AddMovieModal: React.FC<Props> = React.forwardRef<ModalRef, Props>((_props
 
     const handleClose = React.useCallback(() => {
         if(!loading) {
+            dispatch(setMovie({ } as Movie));
             resetForm();
             setOpen(false)
         }
-    }, [loading]);
+    }, [dispatch, loading]);
 
     React.useImperativeHandle(ref, () => ({
         openModal: () => {
@@ -129,6 +131,21 @@ const AddMovieModal: React.FC<Props> = React.forwardRef<ModalRef, Props>((_props
             handleClose();
         }
     }));
+
+    React.useEffect(() => {
+        if (!_.isEmpty(movie)) {
+            const { title, genre, link, thumbnailUrl, year } = movie;
+            setTitle(title);
+            setLink(link);
+            if (typeof genre === 'string') {
+                setGenre(capitalize(genre));
+            } else {
+                setGenre(capitalize(genre.name));
+            }
+            setImageSrc(thumbnailUrl!);
+            setYear(year.toString());
+        }
+    }, [movie]);
 
     React.useEffect(() => {
         if (msg) {
@@ -196,9 +213,41 @@ const AddMovieModal: React.FC<Props> = React.forwardRef<ModalRef, Props>((_props
         reader.readAsDataURL(files![0]);
     };
 
+    const handleEditMovie = () => {
+        const data: EditMovieData = {
+            title,
+            link,
+            genre,
+            year: year ? parseInt(year) : '' as unknown as number
+        };
+
+        const { errors, isValid } = validateEditMovie(data);
+
+        if (!isValid) {
+            dispatch(setToast({
+                type: 'error',
+                message: 'Invalid Movie Data!'
+            }));
+            return setErrors((prev) => ({ ...prev, ...errors }));
+        }
+
+        const movieData = new FormData();
+        movieData.append('title', title);
+        movieData.append('link', link);
+        movieData.append('image', image);
+        movieData.append('genre', getCategoryId(genre, categories));
+        movieData.append('year', year);
+
+        dispatch(editMovie({ data: movieData, movieId: movie._id! }));
+    };
+
     const handleSubmit = ( event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setErrors({} as AddMovieData);
+
+        if (!_.isEmpty(movie)) {
+            return handleEditMovie();
+        }
 
         const data: AddMovieData = {
             title,
@@ -218,14 +267,14 @@ const AddMovieModal: React.FC<Props> = React.forwardRef<ModalRef, Props>((_props
             return setErrors(errors);
         }
 
-        const movie = new FormData();
-        movie.append('title', title);
-        movie.append('link', link);
-        movie.append('image', image);
-        movie.append('genre', getCategoryId(genre, categories));
-        movie.append('year', year);
+        const movieData = new FormData();
+        movieData.append('title', title);
+        movieData.append('link', link);
+        movieData.append('image', image);
+        movieData.append('genre', getCategoryId(genre, categories));
+        movieData.append('year', year);
 
-        dispatch(addMovie(movie));
+        dispatch(addMovie(movieData));
     };
   
     return (

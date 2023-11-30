@@ -14,6 +14,7 @@ const URL = `${process.env.NEXT_PUBLIC_API}/movies`;
 
 interface MovieState {
     isLoading: boolean;
+    movie: Movie;
     movies: Movie[];
     msg: string | null;
     error: MovieError;
@@ -21,6 +22,7 @@ interface MovieState {
 
 const initialState: MovieState = {
     isLoading: false,
+    movie: {} as Movie,
     movies: [],
     msg: null,
     error: {} as MovieError
@@ -32,6 +34,15 @@ export const addMovie = createAsyncThunk<ApiResponse, FormData, { rejectValue: A
         return res.data;
     } catch (err) {
         return handleError(err, rejectWithValue, 'Failed to add movie');
+    }
+});
+
+export const editMovie = createAsyncThunk<ApiResponse, { data: FormData, movieId: string }, { rejectValue: ApiErrorResponse }>('movies/editMovie', async ({ data, movieId }, { rejectWithValue }) => {
+    try {
+        const res = await axios.put<ApiResponse>(`${URL}/${movieId}`, data);
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to edit movie');
     }
 });
 
@@ -87,6 +98,10 @@ export const movies = createSlice({
     name: 'movies',
     initialState,
     reducers: {
+        setMovie: (state, action: PayloadAction<Movie>) => {
+            state.movie = action.payload;
+        },
+
         setMovies: (state, action: PayloadAction<Movie[]>) => {
             state.movies = action.payload;
         },
@@ -110,6 +125,24 @@ export const movies = createSlice({
             state.movies = [action.payload.data, ...state.movies]
         })
         .addCase(addMovie.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
+
+        .addCase(editMovie.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(editMovie.fulfilled, (state, action) => {
+            const editedMovie: Movie = action.payload.data;
+            const movieIndex = state.movies.findIndex((movie: Movie) => movie._id === editedMovie._id);
+            const movies = [...state.movies];
+            movies.splice(movieIndex, 1, editedMovie)
+            
+            state.isLoading = false;
+            state.msg = action.payload.msg || 'Movie edited successfully';
+            state.movies = movies;
+        })
+        .addCase(editMovie.rejected, (state, action) => {
             state.isLoading = false;
             state.error = action.payload?.data;
         })
@@ -158,12 +191,14 @@ export const movies = createSlice({
 export const {
     clearMovieErrors,
     setMoviesMessage,
-    setMovies
+    setMovies,
+    setMovie
 } = movies.actions;
 
 export const selectMovieErrors = (state: RootState) => state.movies.error;
 export const selectIsMovieLoading = (state: RootState) => state.movies.isLoading;
 export const selectMoviesMessage = (state: RootState) => state.movies.msg;
 export const selectMovies = (state: RootState) => state.movies.movies;
+export const selectMovie = (state: RootState) => state.movies.movie;
 
 export default movies.reducer;

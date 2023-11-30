@@ -16,8 +16,6 @@ import { selectMusics } from '@/redux/features/musicSlice';
 import { Music as MusicData} from '@/interfaces';
 import Music from './Music';
 
-
-
 function createData(name: string, calories: number, fat: number, carbs: number, protein: number) {
     return { name, calories, fat, carbs, protein };
 }
@@ -35,7 +33,11 @@ const rows = [
     createData('Gingerbread', 356, 16.0, 49, 3.9),
 ];
 
-const MusicTable: React.FC<{}> = () => {
+interface Props {
+    handleEditMusic: (movie: MusicData) => void;
+}
+
+const MusicTable: React.FC<Props> = ({ handleEditMusic }) => {
     const musics = useSelector(selectMusics);
 
     const [page, setPage] = React.useState(0);
@@ -69,6 +71,7 @@ const MusicTable: React.FC<{}> = () => {
                             <Music
                                 key={music._id}
                                 music={music}
+                                handleEditMusic={handleEditMusic}
                             />
                         ))}
                     </TableBody>

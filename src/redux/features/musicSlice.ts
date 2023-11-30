@@ -14,6 +14,7 @@ const URL = `${process.env.NEXT_PUBLIC_API}/music`;
 
 interface MusicState {
     isLoading: boolean;
+    music: Music;
     musics: Music[];
     msg: string | null;
     error: MusicError;
@@ -21,6 +22,7 @@ interface MusicState {
 
 const initialState: MusicState = {
     isLoading: false,
+    music: {} as Music,
     musics: [],
     msg: null,
     error: {} as MusicError
@@ -87,6 +89,10 @@ export const music = createSlice({
     name: 'music',
     initialState,
     reducers: {
+        setMusic: (state, action: PayloadAction<Music>) => {
+            state.music = action.payload;
+        },
+
         setMusics: (state, action: PayloadAction<Music[]>) => {
             state.musics = action.payload;
         },
@@ -157,6 +163,7 @@ export const music = createSlice({
 export const {
     clearMusicErrors,
     setMusicMessage,
+    setMusic,
     setMusics
 } = music.actions;
 
@@ -164,5 +171,6 @@ export const selectMusicErrors = (state: RootState) => state.music.error;
 export const selectIsMusicLoading = (state: RootState) => state.music.isLoading;
 export const selectMusicMessage = (state: RootState) => state.music.msg;
 export const selectMusics = (state: RootState) => state.music.musics;
+export const selectMusic = (state: RootState) => state.music.music;
 
 export default music.reducer;

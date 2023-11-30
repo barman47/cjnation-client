@@ -29,9 +29,10 @@ const useStyles = makeStyles()((theme => ({
 
 interface Props {
     music: Music;
+    handleEditMusic: (music: Music) => void;
 }
 
-const Music: React.FC<Props> = ({ music }) => {
+const Music: React.FC<Props> = ({ handleEditMusic, music }) => {
     const { classes } = useStyles();
     const dispatch: AppDispatch = useDispatch();
 
@@ -57,7 +58,7 @@ const Music: React.FC<Props> = ({ music }) => {
             <TableCell>
                 <Stack direction="row">
                     <Tooltip title="Edit Music">
-                        <IconButton>
+                        <IconButton onClick={() => handleEditMusic(music)}>
                             <PencilOutline />
                         </IconButton>
                     </Tooltip>

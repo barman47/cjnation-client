@@ -33,7 +33,11 @@ const rows = [
     createData('Gingerbread', 356, 16.0, 49, 3.9),
 ];
 
-const MoviesTable: React.FC<{}> = () => {
+interface Props {
+    handleEditMovie(movie: MovieData): void;
+}
+
+const MoviesTable: React.FC<Props> = ({ handleEditMovie }) => {
     const movies = useSelector(selectMovies);
 
     const [page, setPage] = React.useState(0);
@@ -64,7 +68,7 @@ const MoviesTable: React.FC<{}> = () => {
                     </TableHead>
                     <TableBody>
                         {movies.map((movie: MovieData) => (
-                            <Movie key={movie._id} movie={movie} />
+                            <Movie key={movie._id} movie={movie} handleEditMovie={handleEditMovie} />
                         ))}
                     </TableBody>
                 </Table>

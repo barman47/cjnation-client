@@ -9,7 +9,7 @@ import {
     Tooltip
 } from '@mui/material';
 import { makeStyles } from 'tss-react/mui';
-import { ContentCopy, DeleteOutline, PencilOutline } from 'mdi-material-ui';
+import { Link, DeleteOutline, PencilOutline } from 'mdi-material-ui';
 
 import { Movie } from '@/interfaces';
 import { capitalize } from '@/utils/capitalize';
@@ -29,10 +29,11 @@ const useStyles = makeStyles()((theme => ({
 })));
 
 interface Props {
-    movie: Movie
+    movie: Movie;
+    handleEditMovie: (movie: Movie) => void;
 }
 
-const Movie: React.FC<Props> = ({ movie }) => {
+const Movie: React.FC<Props> = ({ movie, handleEditMovie }) => {
     const { classes } = useStyles();
     const dispatch: AppDispatch = useDispatch();
 
@@ -43,6 +44,7 @@ const Movie: React.FC<Props> = ({ movie }) => {
             message: 'Link copied!'
         }));
     };
+
     return (
         <TableRow
             key={movie._id}
@@ -64,7 +66,7 @@ const Movie: React.FC<Props> = ({ movie }) => {
             <TableCell>
                 <Stack direction="row">
                     <Tooltip  title="Edit Movie">
-                        <IconButton>
+                        <IconButton onClick={() => handleEditMovie(movie)}>
                             <PencilOutline />
                         </IconButton>
                     </Tooltip>
@@ -81,7 +83,7 @@ const Movie: React.FC<Props> = ({ movie }) => {
                     </Tooltip>
                     <Tooltip title={"Copy movie link"}>
                         <IconButton onClick={handleCopyLink}>
-                            <ContentCopy />
+                            <Link />
                         </IconButton>
                     </Tooltip>
                 </Stack>
