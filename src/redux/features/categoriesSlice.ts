@@ -10,7 +10,7 @@ export type CategoryError = Error & Category;
 
 const URL = `${process.env.NEXT_PUBLIC_API}/categories`;
 
-interface Categorytate {
+interface CategoryState {
     isLoading: boolean;
     category: Category;
     categories: Category[];
@@ -18,7 +18,7 @@ interface Categorytate {
     error: CategoryError;
 };
 
-const initialState: Categorytate = {
+const initialState: CategoryState = {
     isLoading: false,
     category: {} as Category,
     categories: [],

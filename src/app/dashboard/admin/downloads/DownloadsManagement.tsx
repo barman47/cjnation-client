@@ -11,6 +11,8 @@ import {
     Typography
 } from '@mui/material';
 import { makeStyles } from 'tss-react/mui';
+import { useDispatch, useSelector } from 'react-redux';
+import _ from 'lodash';
 
 import CustomTabPanel from '@/components/common/CustomTabPanel';
 import SearchBox from '@/components/common/SearchBox';
@@ -19,6 +21,11 @@ import MoviesTable from './MoviesTable';
 import MusicTable from './MusicTable';
 import AddMovieModal from './AddMovieModal';
 import { ModalRef } from '@/utils/constants';
+import { setToast } from '@/redux/features/appSlice';
+import { AppDispatch } from '@/redux/store';
+import { clearMovieErrors, selectMovieErrors } from '@/redux/features/moviesSlice';
+import AddMusicModal from './AddMusicModal';
+import { clearMusicErrors, selectMusicErrors } from '@/redux/features/musicSlice';
 
 function a11yProps(index: number) {
     return {
@@ -47,11 +54,37 @@ const useStyles = makeStyles()((theme) => ({
 
 const DownloadsManagement: React.FC<{}> = () => {
     const { classes } = useStyles();
+    const dispatch: AppDispatch = useDispatch();
 
     const [value, setValue] = React.useState(0);
 
     const addMovieModalRef = React.useRef<ModalRef | null>(null);
     const addMusicModalRef = React.useRef<ModalRef | null>(null);
+
+    const movieErrors = useSelector(selectMovieErrors);
+    const musicErrors = useSelector(selectMusicErrors);
+
+    // Handle Movie API error response
+    React.useEffect(() => {
+        if (!_.isEmpty(movieErrors)) {
+            dispatch(setToast({
+                type: 'error',
+                message: movieErrors.msg!
+            }));
+            dispatch(clearMovieErrors());
+        }
+    }, [movieErrors, dispatch]);
+
+    // Handle Music API error response
+    React.useEffect(() => {
+        if (!_.isEmpty(musicErrors)) {
+            dispatch(setToast({
+                type: 'error',
+                message: musicErrors.msg!
+            }));
+            dispatch(clearMusicErrors);
+        }
+    }, [musicErrors, dispatch]);
 
     const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
         setValue(newValue);
@@ -68,6 +101,7 @@ const DownloadsManagement: React.FC<{}> = () => {
     return (
         <>
             <AddMovieModal ref={addMovieModalRef} />
+            <AddMusicModal ref={addMusicModalRef} />
             <Box component="main">
                 <Typography variant="h5" className={classes.title}>Downloads Management</Typography>
                 <Stack 
