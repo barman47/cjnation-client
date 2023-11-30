@@ -58,7 +58,7 @@ export class PostsController {
                 statusCode: 201, 
                 success: true, 
                 data: post,
-                msg: 'Your blog has been submitted and will reviewed and approved shortly by an admin'
+                msg: 'Your blog has been submitted and will be reviewed and approved shortly by an admin'
             });
         } catch (err) {
             return returnError(err, res, 500, 'Failed to create post');
@@ -176,7 +176,10 @@ export class PostsController {
     @get('/:id')
     async getPost(req: Request, res: Response) {
         try {
-            const post = await PostModel.findById(req.params.id).populate({ path: 'category', select: 'name' }).exec();
+            const post = await PostModel.findById(req.params.id)
+                .populate({ path: 'category', select: 'name' })
+                .populate({ path: 'author', select: 'name avatar' })
+                .exec();
             if (!post) {
                 return sendServerResponse(res, {
                     success: false,
@@ -344,7 +347,7 @@ export class PostsController {
                     statusCode: 200, 
                     success: true, 
                     data: updatedPost,
-                    msg: 'Your blog has been submitted and will reviewed and approved shortly by an admin'
+                    msg: 'Your blog has been submitted and will be reviewed and approved shortly by an admin'
                 });
             }
 
@@ -356,7 +359,7 @@ export class PostsController {
                 statusCode: 200, 
                 success: true, 
                 data: updatedDraft,
-                msg: 'Your blog has been submitted and will reviewed and approved shortly by an admin'
+                msg: 'Your blog has been submitted and will be reviewed and approved shortly by an admin'
             });
         } catch (err) {
             return returnError(err, res, 500, 'Failed to publish post');
