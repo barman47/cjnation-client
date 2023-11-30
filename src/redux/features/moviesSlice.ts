@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import axios from 'axios';
+import axios, { CancelTokenSource } from 'axios';
 
 import { handleError } from '@/utils/handleError';
 import { ApiErrorResponse, ApiResponse, Error } from '@/utils/constants';
@@ -7,6 +7,8 @@ import { Movie } from '@/interfaces';
 import { RootState } from '../store';
 
 export type MovieError = Error & Movie;
+
+let cancelSource: CancelTokenSource | null = null;
 
 const URL = `${process.env.NEXT_PUBLIC_API}/movies`;
 
@@ -33,7 +35,7 @@ export const addMovie = createAsyncThunk<ApiResponse, FormData, { rejectValue: A
     }
 });
 
-export const getMovies = createAsyncThunk<ApiResponse, void, { rejectValue: ApiErrorResponse }>('music/getMovies', async (_, { rejectWithValue }) => {
+export const getMovies = createAsyncThunk<ApiResponse, void, { rejectValue: ApiErrorResponse }>('movies/getMovies', async (_, { rejectWithValue }) => {
     try {
         const res = await axios.get<ApiResponse>(`${URL}`);
         return res.data;
@@ -42,12 +44,42 @@ export const getMovies = createAsyncThunk<ApiResponse, void, { rejectValue: ApiE
     }
 });
 
-export const deleteMovie = createAsyncThunk<ApiResponse, string, { rejectValue: ApiErrorResponse }>('music/deleteMovie', async (movieId, { rejectWithValue }) => {
+export const deleteMovie = createAsyncThunk<ApiResponse, string, { rejectValue: ApiErrorResponse }>('movies/deleteMovie', async (movieId, { rejectWithValue }) => {
     try {
         const res = await axios.delete<ApiResponse>(`${URL}/${movieId}`);
         return res.data;
     } catch (err) {
         return handleError(err, rejectWithValue, 'Failed to get movies');
+    }
+});
+
+// export const searchMovies = createAsyncThunk<ApiResponse, string, { rejectValue: ApiErrorResponse }>('movies/searchMovies', async (searchText, { rejectWithValue }) => {
+//     try {
+//         const res = await axios.get<ApiResponse>(`${URL}/search?text=${searchText}`);
+//         return res.data;
+//     } catch (err) {
+//         return handleError(err, rejectWithValue, 'Failed to search movies');
+//     }
+// });
+
+export const searchMovies = createAsyncThunk<ApiResponse, string, { rejectValue: ApiErrorResponse }>('movies/searchMovies', async (searchText, { rejectWithValue }) => {
+    // Cancel the previous request if it exists
+    if (cancelSource) {
+        cancelSource.cancel('New request initiated');
+    }
+  
+    // Create a new CancelTokenSource for the current request
+    cancelSource = axios.CancelToken.source();
+  
+    try {
+        const res = await axios.get<ApiResponse>(`${URL}/search?text=${searchText}`, { cancelToken: cancelSource.token });
+        return res.data;
+    } catch (err) {
+        if (axios.isCancel(err)) {
+          console.log('Request canceled:', err.message);
+        } else {
+          return handleError(err, rejectWithValue, 'Failed to search movies');
+        }
     }
 });
 
@@ -104,6 +136,18 @@ export const movies = createSlice({
             state.movies = state.movies.filter((movie: Movie) => movie._id !== deletedMovie._id);
         })
         .addCase(deleteMovie.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
+
+        .addCase(searchMovies.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(searchMovies.fulfilled, (state, action) => {
+            state.isLoading = false;
+            state.movies = action.payload.data;
+        })
+        .addCase(searchMovies.rejected, (state, action) => {
             state.isLoading = false;
             state.error = action.payload?.data;
         })

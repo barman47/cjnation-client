@@ -258,6 +258,7 @@ const AppDrawer: React.FC<Props> = ({ handleOpenSignInModal }: Props) => {
                     {pathname === '/' && 
                         <SearchBox 
                             placeholder="Find what you are looking for"
+                            searchHandler={() => {}}
                         />
                     }
                     {(!matches && !isAuthenticated) &&

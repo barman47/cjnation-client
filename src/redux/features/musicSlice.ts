@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import axios from 'axios';
+import axios, { CancelTokenSource } from 'axios';
 
 import { handleError } from '@/utils/handleError';
 import { ApiErrorResponse, ApiResponse, Error } from '@/utils/constants';
@@ -7,6 +7,8 @@ import { Music } from '@/interfaces';
 import { RootState } from '../store';
 
 export type MusicError = Error & Music;
+
+let cancelSource: CancelTokenSource | null = null;
 
 const URL = `${process.env.NEXT_PUBLIC_API}/music`;
 
@@ -48,6 +50,36 @@ export const deleteMusic = createAsyncThunk<ApiResponse, string, { rejectValue: 
         return res.data;
     } catch (err) {
         return handleError(err, rejectWithValue, 'Failed to delete music');
+    }
+});
+
+// export const searchMusic = createAsyncThunk<ApiResponse, string, { rejectValue: ApiErrorResponse }>('music/searchMusic', async (searchText, { rejectWithValue }) => {
+//     try {
+//         const res = await axios.get<ApiResponse>(`${URL}/search?text=${searchText}`);
+//         return res.data;
+//     } catch (err) {
+//         return handleError(err, rejectWithValue, 'Failed to search music');
+//     }
+// });
+
+export const searchMusic = createAsyncThunk<ApiResponse, string, { rejectValue: ApiErrorResponse }>('music/searchMusic', async (searchText, { rejectWithValue }) => {
+    // Cancel the previous request if it exists
+    if (cancelSource) {
+        cancelSource.cancel('New request initiated');
+    }
+  
+    // Create a new CancelTokenSource for the current request
+    cancelSource = axios.CancelToken.source();
+  
+    try {
+        const res = await axios.get<ApiResponse>(`${URL}/search?text=${searchText}`, { cancelToken: cancelSource.token });
+        return res.data;
+    } catch (err) {
+        if (axios.isCancel(err)) {
+          console.log('Request canceled:', err.message);
+        } else {
+          return handleError(err, rejectWithValue, 'Failed to search music');
+        }
     }
 });
 
@@ -104,6 +136,18 @@ export const music = createSlice({
             state.musics = state.musics.filter((music: Music) => music._id !== deletedMusic._id);
         })
         .addCase(deleteMusic.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
+
+        .addCase(searchMusic.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(searchMusic.fulfilled, (state, action) => {
+            state.isLoading = false;
+            state.musics = action.payload.data;
+        })
+        .addCase(searchMusic.rejected, (state, action) => {
             state.isLoading = false;
             state.error = action.payload?.data;
         })

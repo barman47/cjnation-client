@@ -20,11 +20,12 @@ const useStyles = makeStyles()((theme: Theme) => ({
 }));
 
 interface Props {
+    searchHandler: (text: string) => void;
     placeholder?: string;
     icon?: ReactNode;
 }
 
-const SearchBox: React.FC<Props> = ({ placeholder, icon }) => {
+const SearchBox: React.FC<Props> = ({ searchHandler, placeholder, icon }) => {
     const { classes } = useStyles();
 
     return (
@@ -39,6 +40,7 @@ const SearchBox: React.FC<Props> = ({ placeholder, icon }) => {
                         </InputAdornment>
                     )
                 }}
+                onChange={(e) => searchHandler(e.target.value)}
                 classes={{ root: classes.root }}
             />
         </form>
