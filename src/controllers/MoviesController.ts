@@ -124,7 +124,7 @@ export class MovieController {
 
             if (!movie) {
                 return sendServerResponse(res, {
-                    statusCode: 204,
+                    statusCode: 404,
                     success: false,
                     errors,
                     msg: 'Movie does not exist!'
@@ -153,7 +153,7 @@ export class MovieController {
                 .exec();
 
             return sendServerResponse(res, {
-                statusCode: 201,
+                statusCode: 200,
                 success: true,
                 msg: 'Movie updated successfully',
                 data: updatedMovie

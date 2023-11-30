@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 
 import { authorize, protect } from '../utils/auth';
 import { returnError } from '../utils/returnError';
-import { post, controller, use, get, del } from './decorators';
+import { post, controller, use, get, del, put } from './decorators';
 
 import MusicModel from '../models/Music';
 import { sendServerResponse } from '../utils/sendServerResponse';
@@ -12,6 +12,7 @@ import { validateAddMusic } from '../utils/validation/music/add';
 import { deleteFile, uploadFile } from '../utils/googleCloudStorage';
 import { generateSlug } from '../utils/generateSlug';
 import { getFileNameExtension } from '../utils/getFileNameExtenstion';
+import { validateEditMusic } from '../utils/validation/music';
 
 @controller('/music')
 export class MusicController {
@@ -110,6 +111,65 @@ export class MusicController {
             });
         } catch (err) {
             return returnError(err, res, 500, 'Failed to find music');
+        }
+    }
+
+    @use(authorize(Role.ADMIN))
+    @use(protect)
+    @put('/:id')
+    async editMusic(req: Request, res: Response) {
+        try {
+            const { errors, isValid } = validateEditMusic(req.body);
+
+            if (!isValid) {
+                return sendServerResponse(res, {
+                    statusCode: 400,
+                    success: false,
+                    errors,
+                    msg: 'Invalid music data!'
+                });
+            }
+
+            const music = await MusicModel.findById(req.params.id);
+
+            if (!music) {
+                return sendServerResponse(res, {
+                    statusCode: 404,
+                    success: false,
+                    errors,
+                    msg: 'Music does not exist!'
+                });
+            }   
+
+            const imageFile = req.files?.image;
+            const musicFile = req.files?.music;
+
+            if (imageFile) {
+                await deleteFile(music.thumbnailName!);
+                const imageFileNameExtension = getFileNameExtension(imageFile.name);
+                const { name, url } = await uploadFile(imageFile.tempFilePath, `${process.env.MUSIC_FOLDER}/${process.env.MUSIC_THUMBNAILS_FOLDER}/${generateSlug(req.body.title)}.${imageFileNameExtension}`);
+                await MusicModel.findByIdAndUpdate(req.params.id, { $set: { thumbnailUrl: url, thumbnailName: name } });
+            }
+
+            if (musicFile) {
+                await deleteFile(music.mediaName!);
+                const musicFileNameExtension = getFileNameExtension(musicFile.name);
+                const { name, url } = await uploadFile(musicFile.tempFilePath, `${process.env.MUSIC_FOLDER}/${generateSlug(req.body.title)}.${musicFileNameExtension}`);
+                await MusicModel.findByIdAndUpdate(req.params.id, { $set: { mediaUrl: url, mediaName: name } });
+            }
+            
+            const updatedMusc = await MusicModel.findByIdAndUpdate(req.params.id, { $set: {...req.body } }, { new: true, runValidators: true })
+                .populate({ path: 'genre', select: 'name' })
+                .exec();
+
+            return sendServerResponse(res, {
+                statusCode: 200,
+                success: true,
+                msg: 'Music updated successfully',
+                data: updatedMusc
+            });
+        } catch (err) {
+            return returnError(err, res, 500, 'Failed to update music');
         }
     }
 
