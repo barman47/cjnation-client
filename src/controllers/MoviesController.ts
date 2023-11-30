@@ -3,12 +3,12 @@ import { Request, Response } from 'express';
 
 import { authorize, protect } from '../utils/auth';
 import { returnError } from '../utils/returnError';
-import { post, controller, use, get, del } from './decorators';
+import { post, controller, use, get, del, put } from './decorators';
 
 import MovieModel from '../models/Movie';
 import { sendServerResponse } from '../utils/sendServerResponse';
 import { Role } from '../utils/constants';
-import { validateAddMovie } from '../utils/validation/movies/add';
+import { validateAddMovie, validateEditMovie } from '../utils/validation/movies';
 import { deleteFile, uploadFile } from '../utils/googleCloudStorage';
 import { generateSlug } from '../utils/generateSlug';
 import { getFileNameExtension } from '../utils/getFileNameExtenstion';
@@ -101,6 +101,65 @@ export class MovieController {
             });
         } catch (err) {
             return returnError(err, res, 500, 'Failed to find movies');
+        }
+    }
+
+    @use(authorize(Role.ADMIN))
+    @use(protect)
+    @put('/:id')
+    async editMovie(req: Request, res: Response) {
+        try {
+            const { errors, isValid } = validateEditMovie(req.body);
+
+            if (!isValid) {
+                return sendServerResponse(res, {
+                    statusCode: 400,
+                    success: false,
+                    errors,
+                    msg: 'Invalid movie data!'
+                });
+            }
+
+            const movie = await MovieModel.findById(req.params.id);
+
+            if (!movie) {
+                return sendServerResponse(res, {
+                    statusCode: 204,
+                    success: false,
+                    errors,
+                    msg: 'Movie does not exist!'
+                });
+            }   
+
+            const file = req.files?.image;
+
+            if (file) {
+                await deleteFile(movie.thumbnailName!);
+                const fileNameExtension = getFileNameExtension(file.name);
+                const { url, name } = await uploadFile(file.tempFilePath, `${process.env.MOVIES_FOLDER}/${generateSlug(req.body.title)}.${fileNameExtension}`);
+                await MovieModel.findByIdAndUpdate(req.params.id, { $set: { ...req.body, thumbnailUrl: url, thumbnailName: name } }, { new: true, runValidators: true });
+                const populatedMovie = await MovieModel.findById(req.params.id).populate({ path: 'genre', select: 'name' }).exec();
+
+                return sendServerResponse(res, {
+                    statusCode: 200,
+                    success: true,
+                    msg: 'Movie updated successfully',
+                    data: populatedMovie
+                });
+            }
+            
+            const updatedMovie = await MovieModel.findByIdAndUpdate(req.params.id, { $set: {...req.body } }, { new: true, runValidators: true })
+                .populate({ path: 'genre', select: 'name' })
+                .exec();
+
+            return sendServerResponse(res, {
+                statusCode: 201,
+                success: true,
+                msg: 'Movie updated successfully',
+                data: updatedMovie
+            });
+        } catch (err) {
+            return returnError(err, res, 500, 'Failed to update movie');
         }
     }
 
