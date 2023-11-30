@@ -23,9 +23,9 @@ import AddMovieModal from './AddMovieModal';
 import { ModalRef } from '@/utils/constants';
 import { setToast } from '@/redux/features/appSlice';
 import { AppDispatch } from '@/redux/store';
-import { clearMovieErrors, selectMovieErrors } from '@/redux/features/moviesSlice';
+import { clearMovieErrors, getMovies, selectMovieErrors } from '@/redux/features/moviesSlice';
 import AddMusicModal from './AddMusicModal';
-import { clearMusicErrors, selectMusicErrors } from '@/redux/features/musicSlice';
+import { clearMusicErrors, getMusics, selectMusicErrors } from '@/redux/features/musicSlice';
 
 function a11yProps(index: number) {
     return {
@@ -63,6 +63,16 @@ const DownloadsManagement: React.FC<{}> = () => {
 
     const movieErrors = useSelector(selectMovieErrors);
     const musicErrors = useSelector(selectMusicErrors);
+
+    React.useEffect(() => {
+        if (value === 0) {
+            dispatch(getMovies());
+        }
+
+        if (value === 1) {
+            dispatch(getMusics());
+        }
+    }, [dispatch, value]);
 
     // Handle Movie API error response
     React.useEffect(() => {

@@ -3,7 +3,7 @@ import { isEmpty } from '@/utils/isEmpty';
 import { Category, Music } from '@/interfaces';
 import { ErrorObject } from '@/utils/constants';
 
-export type AddMusicData = Pick<Music, 'title' | 'artiste' | 'mediaName' | 'genre' | 'year'>;
+export type AddMusicData = Pick<Music, 'title' | 'artiste' | 'thumbnailName' | 'mediaName' | 'genre' | 'year'>;
 
 export const validateAddMusic = (data: AddMusicData): ErrorObject<AddMusicData> => {
     let errors = {} as AddMusicData;
@@ -20,6 +20,10 @@ export const validateAddMusic = (data: AddMusicData): ErrorObject<AddMusicData> 
 
     if (Validator.isEmpty(data.artiste)) {
         errors.artiste = 'Artiste is required!';
+    }
+
+    if (Validator.isEmpty(data.thumbnailName!)) {
+        errors.thumbnailName = 'Music cover is required!';
     }
 
     if (Validator.isEmpty(data.mediaName!)) {

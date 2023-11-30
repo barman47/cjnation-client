@@ -33,6 +33,24 @@ export const addMusic = createAsyncThunk<ApiResponse, FormData, { rejectValue: A
     }
 });
 
+export const getMusics = createAsyncThunk<ApiResponse, void, { rejectValue: ApiErrorResponse }>('music/getMusics', async (_, { rejectWithValue }) => {
+    try {
+        const res = await axios.get<ApiResponse>(`${URL}`);
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to get music');
+    }
+});
+
+export const deleteMusic = createAsyncThunk<ApiResponse, string, { rejectValue: ApiErrorResponse }>('music/deleteMusic', async (musicId, { rejectWithValue }) => {
+    try {
+        const res = await axios.delete<ApiResponse>(`${URL}/${musicId}`);
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to delete music');
+    }
+});
+
 export const music = createSlice({
     name: 'music',
     initialState,
@@ -56,13 +74,39 @@ export const music = createSlice({
         })
         .addCase(addMusic.fulfilled, (state, action) => {
             state.isLoading = false;
+            state.musics = [action.payload.data, ...state.musics]
             state.msg = action.payload.msg || 'Music added successfully'
         })
         .addCase(addMusic.rejected, (state, action) => {
             state.isLoading = false;
             state.error = action.payload?.data;
         })
-        
+
+        .addCase(getMusics.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(getMusics.fulfilled, (state, action) => {
+            state.isLoading = false;
+            state.musics = action.payload.data;
+        })
+        .addCase(getMusics.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
+
+        .addCase(deleteMusic.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(deleteMusic.fulfilled, (state, action) => {
+            const deletedMusic:Music = action.payload.data;
+            state.isLoading = false;
+            state.msg = action.payload.msg || 'Music deleted successfully'
+            state.musics = state.musics.filter((music: Music) => music._id !== deletedMusic._id);
+        })
+        .addCase(deleteMusic.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
     }
 });
 

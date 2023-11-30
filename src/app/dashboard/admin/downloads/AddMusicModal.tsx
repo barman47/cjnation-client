@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Image from 'next/image';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     Box,
@@ -59,7 +60,7 @@ const useStyles = makeStyles()((theme: Theme) => ({
         alignSelf: 'flex-end'
     },
 
-    musicContainer: {
+    imageContainer: {
         width: '100%',
         height: theme.spacing(35)
     },
@@ -100,6 +101,8 @@ const AddMusicModal: React.FC<Props> = React.forwardRef<ModalRef, Props>((_props
 
     const [title, setTitle] = React.useState('');
     const [artiste, setArtiste] = React.useState('');
+    const [imageSrc, setImageSrc] = React.useState<string | ArrayBuffer>('');
+    const [image, setImage] = React.useState<File>('' as unknown as File);
     const [musicSrc, setMusicSrc] = React.useState<string | undefined>('');
     const [music, setMusic] = React.useState<File>('' as unknown as File);
     const [genre, setGenre] = React.useState('');
@@ -107,11 +110,8 @@ const AddMusicModal: React.FC<Props> = React.forwardRef<ModalRef, Props>((_props
     const [open, setOpen] = React.useState(false);
     const [errors, setErrors] = React.useState<AddMusicData>({} as AddMusicData);
 
-    const fileUploadRef = React.useRef<HTMLInputElement>(null);
-
-    React.useEffect(() => {
-        dispatch(getCategoriesByType(Categories.MUSIC));
-    }, [dispatch]);
+    const imageUploadRef = React.useRef<HTMLInputElement>(null);
+    const musicUploadRef = React.useRef<HTMLInputElement>(null);
     
     const handleOpen = () => setOpen(true);
 
@@ -125,6 +125,7 @@ const AddMusicModal: React.FC<Props> = React.forwardRef<ModalRef, Props>((_props
     React.useImperativeHandle(ref, () => ({
         openModal: () => {
             handleOpen();
+            dispatch(getCategoriesByType(Categories.MUSIC));
         },
 
         closeModal: () => {
@@ -168,15 +169,35 @@ const AddMusicModal: React.FC<Props> = React.forwardRef<ModalRef, Props>((_props
     };
 
     const handleSelectImage = (_: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-        fileUploadRef.current?.click();
+        imageUploadRef.current?.click();
+    };
+
+    const handleSelectMusic = (_: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+        musicUploadRef.current?.click();
     };
 
     const handleRemovePhoto = () => {
+        setImage('' as unknown as File);
+        setImageSrc('');
+    };
+
+    const handleRemoveMusic = () => {
         setMusic('' as unknown as File);
         setMusicSrc('');
     };
 
     const handleSetImage = (e: React.ChangeEvent<HTMLInputElement>): void => {
+        const { files } = e.target;
+        setImage(files![0]);
+        const reader = new FileReader();
+
+        reader.onload = (() => {
+            setImageSrc(reader.result!);
+        });
+        reader.readAsDataURL(files![0]);
+    };
+
+    const handleSetAudio = (e: React.ChangeEvent<HTMLInputElement>): void => {
         const { files } = e.target;
         setMusic(files![0]);
         const reader = new FileReader();
@@ -195,6 +216,7 @@ const AddMusicModal: React.FC<Props> = React.forwardRef<ModalRef, Props>((_props
             title,
             artiste,
             mediaName: musicSrc ? 'something to make this value exist' : '',
+            thumbnailName: imageSrc ? 'text-here' : '',
             genre,
             year: year ? parseInt(year) : '' as unknown as number
         };
@@ -212,6 +234,7 @@ const AddMusicModal: React.FC<Props> = React.forwardRef<ModalRef, Props>((_props
         const musicData = new FormData();
         musicData.append('title', title);
         musicData.append('artiste', artiste);
+        musicData.append('image', image)
         musicData.append('music', music);
         musicData.append('genre', getCategoryId(genre, categories));
         musicData.append('year', year);
@@ -261,10 +284,57 @@ const AddMusicModal: React.FC<Props> = React.forwardRef<ModalRef, Props>((_props
                                 disabled={loading}
                             />
                             <input
-                                ref={fileUploadRef}
-                                accept=".mp3"
+                                ref={imageUploadRef}
+                                accept=".png, .jpg, .webm"
                                 style={{ display: 'none' }}
                                 onChange={handleSetImage}
+                                type="file"
+                            />
+                            {imageSrc ?
+                                <>
+                                    <Box component="div" className={classes.imageContainer}>
+                                        <Image 
+                                            src={imageSrc.toString()}
+                                            alt="Post Image"
+                                            width={1000}
+                                            height={400}
+                                            className={classes.image}
+                                        />
+                                    </Box>
+                                    <Button
+                                        variant="text"
+                                        color="primary"
+                                        onClick={handleRemovePhoto}
+                                        sx={{ alignSelf: 'flex-start' }}
+                                        disabled={loading}
+                                    >
+                                        Remove Photo
+                                    </Button>
+                                </>
+                                :
+                                <>
+                                    <Box 
+                                        component="div" 
+                                        className={classes.imageUploadContainer} 
+                                        style={{ 
+                                            border: errors.mediaName ? `2px dashed ${theme.palette.error.main}` : `2px dashed ${DARK_GREY}`,
+                                        }}
+                                    >
+                                        <Stack direction="row" spacing={1}>
+                                            <CloudUploadOutline sx={{ color: OFF_BLACK }} />
+                                            <Typography variant="body2" sx={{ color: OFF_BLACK }}>Upload thumbnail &nbsp;
+                                                <Typography component="span" color={PRIMARY_COLOR} sx={{ cursor: 'pointer' }} onClick={handleSelectImage}>here</Typography>
+                                            </Typography>
+                                        </Stack>
+                                    </Box>
+                                    {errors.mediaName && <FormHelperText sx={{ color: '#d32f2f' }}>{errors.mediaName}</FormHelperText>}
+                                </>
+                            }
+                            <input
+                                ref={musicUploadRef}
+                                accept=".mp3"
+                                style={{ display: 'none' }}
+                                onChange={handleSetAudio}
                                 type="file"
                             />
                             {musicSrc ?
@@ -279,11 +349,11 @@ const AddMusicModal: React.FC<Props> = React.forwardRef<ModalRef, Props>((_props
                                     <Button
                                         variant="text"
                                         color="primary"
-                                        onClick={handleRemovePhoto}
+                                        onClick={handleRemoveMusic}
                                         sx={{ alignSelf: 'flex-start' }}
                                         disabled={loading}
                                     >
-                                        Remove File
+                                        Remove Music
                                     </Button>
                                 </>
                                 :
@@ -298,7 +368,7 @@ const AddMusicModal: React.FC<Props> = React.forwardRef<ModalRef, Props>((_props
                                         <Stack direction="row" spacing={1}>
                                             <CloudUploadOutline sx={{ color: OFF_BLACK }} />
                                             <Typography variant="body2" sx={{ color: OFF_BLACK }}>Upload Music &nbsp;
-                                                <Typography component="span" color={PRIMARY_COLOR} sx={{ cursor: 'pointer' }} onClick={handleSelectImage}>here</Typography>
+                                                <Typography component="span" color={PRIMARY_COLOR} sx={{ cursor: 'pointer' }} onClick={handleSelectMusic}>here</Typography>
                                             </Typography>
                                         </Stack>
                                     </Box>

@@ -1,8 +1,7 @@
 import * as React from 'react';
 
-import Image from 'next/image';
+import { useSelector } from 'react-redux';
 import {
-    Stack,
     Table,
     TableBody,
     TableCell,
@@ -10,23 +9,14 @@ import {
     TableHead,
     TableRow,
     Paper,
-    IconButton,
     TablePagination
 } from '@mui/material';
-import { makeStyles } from 'tss-react/mui';
-import { ContentCopy, DeleteOutline, Pause, PencilOutline, Play } from 'mdi-material-ui';
 
-import image from '../../../../../public/assets/avatar.jpeg';
+import { selectMusics } from '@/redux/features/musicSlice';
+import { Music as MusicData} from '@/interfaces';
+import Music from './Music';
 
-const useStyles = makeStyles()((theme => ({
-    cover: {
-        borderRadius: theme.shape.borderRadius,
-        objectFit: 'cover',
-        objectPosition: 'center',
-        width: theme.spacing(10),
-        height: theme.spacing(12)
-    }
-})));
+
 
 function createData(name: string, calories: number, fat: number, carbs: number, protein: number) {
     return { name, calories, fat, carbs, protein };
@@ -46,7 +36,7 @@ const rows = [
 ];
 
 const MusicTable: React.FC<{}> = () => {
-    const { classes } = useStyles();
+    const musics = useSelector(selectMusics);
 
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(10);
@@ -70,44 +60,16 @@ const MusicTable: React.FC<{}> = () => {
                             <TableCell align="center">Title</TableCell>
                             <TableCell align="center">Artiste</TableCell>
                             <TableCell align="center">Genre</TableCell>
+                            <TableCell align="center">Music</TableCell>
                             <TableCell align="center"></TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {rows.map((row) => (
-                            <TableRow
-                                key={row.name}
-                                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                            >
-                                <TableCell component="th" scope="row">
-                                    <Image 
-                                        src={image.src}
-                                        width={80}
-                                        height={100}
-                                        alt="Thumbnail"
-                                        className={classes.cover}
-                                    />
-                                </TableCell>
-                                <TableCell align="center">Talk About it</TableCell>
-                                <TableCell align="center">MI Abaga</TableCell>
-                                <TableCell align="center">Rap</TableCell>
-                                <TableCell>
-                                    <Stack direction="row">
-                                        {/* <IconButton>
-                                            <Pause />
-                                        </IconButton> */}
-                                        <IconButton>
-                                            <Play />
-                                        </IconButton>
-                                        <IconButton>
-                                            <PencilOutline />
-                                        </IconButton>
-                                        <IconButton>
-                                            <DeleteOutline />
-                                        </IconButton>
-                                    </Stack>
-                                </TableCell>
-                            </TableRow>
+                        {musics.map((music: MusicData) => (
+                            <Music
+                                key={music._id}
+                                music={music}
+                            />
                         ))}
                     </TableBody>
                 </Table>

@@ -14,8 +14,6 @@ export const validateAddMovie = (data: AddMovieData): ErrorObject<AddMovieData> 
     data.genre = !isEmpty(data.genre) ?  data.genre : '' as unknown as Category;
     data.year = !isEmpty(data.year) ?  data.year : '' as unknown as number;
 
-    console.log(data);
-
     if (Validator.isEmpty(data.title)) {
         errors.title = 'Movie title is required!';
     }

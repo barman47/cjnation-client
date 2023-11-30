@@ -1,8 +1,6 @@
 import * as React from 'react';
 
-import Image from 'next/image';
 import {
-    Stack,
     Table,
     TableBody,
     TableCell,
@@ -10,23 +8,13 @@ import {
     TableHead,
     TableRow,
     Paper,
-    IconButton,
     TablePagination
 } from '@mui/material';
-import { makeStyles } from 'tss-react/mui';
-import { ContentCopy, DeleteOutline, PencilOutline } from 'mdi-material-ui';
 
-import image from '../../../../../public/assets/avatar.jpeg';
-
-const useStyles = makeStyles()((theme => ({
-    thumbnail: {
-        borderRadius: theme.shape.borderRadius,
-        objectFit: 'cover',
-        objectPosition: 'center',
-        width: theme.spacing(10),
-        height: theme.spacing(12)
-    }
-})));
+import { useSelector } from 'react-redux';
+import { selectMovies } from '@/redux/features/moviesSlice';
+import { Movie as MovieData } from '@/interfaces';
+import Movie from './Movie';
 
 function createData(name: string, calories: number, fat: number, carbs: number, protein: number) {
     return { name, calories, fat, carbs, protein };
@@ -46,7 +34,7 @@ const rows = [
 ];
 
 const MoviesTable: React.FC<{}> = () => {
-    const { classes } = useStyles();
+    const movies = useSelector(selectMovies);
 
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(10);
@@ -66,7 +54,7 @@ const MoviesTable: React.FC<{}> = () => {
             <Table stickyHeader aria-label="sticky table">
                     <TableHead>
                         <TableRow>
-                            <TableCell align="center">Thumbnail</TableCell>
+                            <TableCell align="left">Thumbnail</TableCell>
                             <TableCell align="center">Title</TableCell>
                             <TableCell align="center">Link</TableCell>
                             <TableCell align="center">Category</TableCell>
@@ -75,38 +63,8 @@ const MoviesTable: React.FC<{}> = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {rows.map((row) => (
-                            <TableRow
-                                key={row.name}
-                                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                            >
-                                <TableCell component="th" scope="row">
-                                    <Image 
-                                        src={image.src}
-                                        width={80}
-                                        height={100}
-                                        alt="Thumbnail"
-                                        className={classes.thumbnail}
-                                    />
-                                </TableCell>
-                                <TableCell align="center">John Wick: Chapter 3</TableCell>
-                                <TableCell align="center">https://yts.mx/movies/john-wick-chapter-4-2023</TableCell>
-                                <TableCell align="center">Action</TableCell>
-                                <TableCell align="center">2019</TableCell>
-                                <TableCell>
-                                    <Stack direction="row">
-                                        <IconButton>
-                                            <PencilOutline />
-                                        </IconButton>
-                                        <IconButton>
-                                            <DeleteOutline />
-                                        </IconButton>
-                                        <IconButton>
-                                            <ContentCopy />
-                                        </IconButton>
-                                    </Stack>
-                                </TableCell>
-                            </TableRow>
+                        {movies.map((movie: MovieData) => (
+                            <Movie key={movie._id} movie={movie} />
                         ))}
                     </TableBody>
                 </Table>

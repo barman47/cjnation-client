@@ -33,6 +33,24 @@ export const addMovie = createAsyncThunk<ApiResponse, FormData, { rejectValue: A
     }
 });
 
+export const getMovies = createAsyncThunk<ApiResponse, void, { rejectValue: ApiErrorResponse }>('music/getMovies', async (_, { rejectWithValue }) => {
+    try {
+        const res = await axios.get<ApiResponse>(`${URL}`);
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to get movies');
+    }
+});
+
+export const deleteMovie = createAsyncThunk<ApiResponse, string, { rejectValue: ApiErrorResponse }>('music/deleteMovie', async (movieId, { rejectWithValue }) => {
+    try {
+        const res = await axios.delete<ApiResponse>(`${URL}/${movieId}`);
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to get movies');
+    }
+});
+
 export const movies = createSlice({
     name: 'movies',
     initialState,
@@ -56,9 +74,36 @@ export const movies = createSlice({
         })
         .addCase(addMovie.fulfilled, (state, action) => {
             state.isLoading = false;
-            state.msg = action.payload.msg || 'Movie added successfully'
+            state.msg = action.payload.msg || 'Movie added successfully';
+            state.movies = [action.payload.data, ...state.movies]
         })
         .addCase(addMovie.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
+
+        .addCase(getMovies.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(getMovies.fulfilled, (state, action) => {
+            state.isLoading = false;
+            state.movies = action.payload.data;
+        })
+        .addCase(getMovies.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
+
+        .addCase(deleteMovie.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(deleteMovie.fulfilled, (state, action) => {
+            const deletedMovie:Movie = action.payload.data;
+            state.isLoading = false;
+            state.msg = action.payload.msg || 'Movie deleted successfully'
+            state.movies = state.movies.filter((movie: Movie) => movie._id !== deletedMovie._id);
+        })
+        .addCase(deleteMovie.rejected, (state, action) => {
             state.isLoading = false;
             state.error = action.payload?.data;
         })

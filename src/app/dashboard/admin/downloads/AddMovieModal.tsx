@@ -110,10 +110,6 @@ const AddMovieModal: React.FC<Props> = React.forwardRef<ModalRef, Props>((_props
 
     const fileUploadRef = React.useRef<HTMLInputElement>(null);
 
-    React.useEffect(() => {
-        dispatch(getCategoriesByType(Categories.MOVIE));
-    }, [dispatch]);
-    
     const handleOpen = () => setOpen(true);
 
     const handleClose = React.useCallback(() => {
@@ -126,6 +122,7 @@ const AddMovieModal: React.FC<Props> = React.forwardRef<ModalRef, Props>((_props
     React.useImperativeHandle(ref, () => ({
         openModal: () => {
             handleOpen();
+            dispatch(getCategoriesByType(Categories.MOVIE));
         },
 
         closeModal: () => {
