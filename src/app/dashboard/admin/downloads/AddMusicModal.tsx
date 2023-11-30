@@ -30,8 +30,8 @@ import { Close, CloudUploadOutline } from 'mdi-material-ui';
 
 import { setToast } from '@/redux/features/appSlice';
 import { AppDispatch } from '@/redux/store';
-import { AddMusicData, validateAddMusic } from '@/utils/validation/music';
-import { addMusic, selectIsMusicLoading, selectMusicErrors, clearMusicErrors, selectMusicMessage, setMusicMessage } from '@/redux/features/musicSlice';
+import { AddMusicData, EditMusicData, validateAddMusic, validateEditMusic } from '@/utils/validation/music';
+import { addMusic, selectIsMusicLoading, selectMusicErrors, clearMusicErrors, selectMusicMessage, setMusicMessage, selectMusic, setMusic as setCurrentMusic, editMusic } from '@/redux/features/musicSlice';
 import { capitalize } from '@/utils/capitalize';
 import { Category, Music } from '@/interfaces';
 import { getCategoriesByType, selectCategoires } from '@/redux/features/categoriesSlice';
@@ -95,6 +95,7 @@ const AddMusicModal: React.FC<Props> = React.forwardRef<ModalRef, Props>((_props
     const theme = useTheme();
 
     const categories = useSelector(selectCategoires);
+    const currentMusic = useSelector(selectMusic);
     const musicErrors = useSelector(selectMusicErrors);
     const loading = useSelector(selectIsMusicLoading);
     const msg = useSelector(selectMusicMessage);
@@ -117,10 +118,11 @@ const AddMusicModal: React.FC<Props> = React.forwardRef<ModalRef, Props>((_props
 
     const handleClose = React.useCallback(() => {
         if(!loading) {
+            dispatch(setCurrentMusic({ } as Music));
             resetForm();
             setOpen(false)
         }
-    }, [loading]);
+    }, [dispatch, loading]);
 
     React.useImperativeHandle(ref, () => ({
         openModal: () => {
@@ -132,6 +134,22 @@ const AddMusicModal: React.FC<Props> = React.forwardRef<ModalRef, Props>((_props
             handleClose();
         }
     }));
+
+    React.useEffect(() => {
+        if (!_.isEmpty(currentMusic)) {
+            const { title, artiste, genre, mediaUrl, thumbnailUrl, year } = currentMusic;
+            setTitle(title);
+            setArtiste(artiste);
+            if (typeof genre === 'string') {
+                setGenre(capitalize(genre));
+            } else {
+                setGenre(capitalize(genre.name));
+            }
+            setMusicSrc(mediaUrl!);
+            setImageSrc(thumbnailUrl!);
+            setYear(year.toString());
+        }
+    }, [currentMusic]);
 
     // Handle API error response
     React.useEffect(() => {
@@ -208,9 +226,42 @@ const AddMusicModal: React.FC<Props> = React.forwardRef<ModalRef, Props>((_props
         reader.readAsDataURL(files![0]);
     };
 
+    const handleEditMusic = () => {
+        const data: EditMusicData = {
+            title,
+            artiste,
+            genre,
+            year: year ? parseInt(year) : '' as unknown as number
+        };
+
+        const { errors, isValid } = validateEditMusic(data);
+
+        if (!isValid) {
+            dispatch(setToast({
+                type: 'error',
+                message: 'Invalid Music Data!'
+            }));
+            return setErrors((prev) => ({ ...prev, ...errors }));
+        }
+
+        const musicData = new FormData();
+        musicData.append('title', title);
+        musicData.append('artiste', artiste);
+        musicData.append('image', image)
+        musicData.append('music', music);
+        musicData.append('genre', getCategoryId(genre, categories));
+        musicData.append('year', year);
+
+        dispatch(editMusic({ data: musicData, musicId: currentMusic._id! }));
+    };
+
     const handleSubmit = ( event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setErrors({} as AddMusicData);
+
+        if (!_.isEmpty(currentMusic)) {
+            return handleEditMusic();
+        }
 
         const data: AddMusicData = {
             title,

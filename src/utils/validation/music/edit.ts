@@ -3,15 +3,13 @@ import { isEmpty } from '@/utils/isEmpty';
 import { Category, Music } from '@/interfaces';
 import { ErrorObject } from '@/utils/constants';
 
-export type AddMusicData = Pick<Music, 'title' | 'artiste' | 'thumbnailName' | 'mediaName' | 'genre' | 'year'>;
+export type EditMusicData = Pick<Music, 'title' | 'artiste' | 'genre' | 'year'>;
 
-export const validateAddMusic = (data: AddMusicData): ErrorObject<AddMusicData> => {
-    let errors = {} as AddMusicData;
+export const validateEditMusic = (data: EditMusicData): ErrorObject<EditMusicData> => {
+    let errors = {} as EditMusicData;
 
     data.title = !isEmpty(data.title) ?  data.title : '';
     data.artiste = !isEmpty(data.artiste) ?  data.artiste : '';
-    data.thumbnailName = !isEmpty(data.thumbnailName) ?  data.thumbnailName : '';
-    data.mediaName = !isEmpty(data.mediaName) ?  data.mediaName : '';
     data.genre = !isEmpty(data.genre) ?  data.genre : '' as unknown as Category;
     data.year = !isEmpty(data.year) ?  data.year : '' as unknown as number;
 
@@ -21,14 +19,6 @@ export const validateAddMusic = (data: AddMusicData): ErrorObject<AddMusicData> 
 
     if (Validator.isEmpty(data.artiste)) {
         errors.artiste = 'Artiste is required!';
-    }
-
-    if (Validator.isEmpty(data.thumbnailName!)) {
-        errors.thumbnailName = 'Music cover is required!';
-    }
-
-    if (Validator.isEmpty(data.mediaName!)) {
-        errors.mediaName = 'Music is required!';
     }
 
     if (Validator.isEmpty(data.genre.toString())) {
@@ -42,5 +32,5 @@ export const validateAddMusic = (data: AddMusicData): ErrorObject<AddMusicData> 
     return {
         errors,
         isValid: isEmpty(errors)
-    } as ErrorObject<AddMusicData>;
+    } as ErrorObject<EditMusicData>;
 };

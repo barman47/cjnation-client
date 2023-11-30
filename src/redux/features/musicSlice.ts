@@ -55,6 +55,15 @@ export const deleteMusic = createAsyncThunk<ApiResponse, string, { rejectValue: 
     }
 });
 
+export const editMusic = createAsyncThunk<ApiResponse, { data: FormData; musicId: string}, { rejectValue: ApiErrorResponse }>('music/editMusic', async ({ data, musicId}, { rejectWithValue }) => {
+    try {
+        const res = await axios.put<ApiResponse>(`${URL}/${musicId}`, data);
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to delete music');
+    }
+});
+
 // export const searchMusic = createAsyncThunk<ApiResponse, string, { rejectValue: ApiErrorResponse }>('music/searchMusic', async (searchText, { rejectWithValue }) => {
 //     try {
 //         const res = await axios.get<ApiResponse>(`${URL}/search?text=${searchText}`);
@@ -116,6 +125,24 @@ export const music = createSlice({
             state.msg = action.payload.msg || 'Music added successfully'
         })
         .addCase(addMusic.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
+
+        .addCase(editMusic.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(editMusic.fulfilled, (state, action) => {
+            const editedMusic: Music = action.payload.data;
+            const musicIndex = state.musics.findIndex((music: Music) => music._id === editedMusic._id);
+            const musics = [...state.musics];
+            musics.splice(musicIndex, 1, editedMusic)
+            
+            state.isLoading = false;
+            state.msg = action.payload.msg || 'Music edited successfully';
+            state.musics = musics;
+        })
+        .addCase(editMusic.rejected, (state, action) => {
             state.isLoading = false;
             state.error = action.payload?.data;
         })
