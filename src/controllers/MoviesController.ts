@@ -74,7 +74,24 @@ export class MovieController {
     async searchMovie(req: Request, res: Response) {
         try {
            
-            const movies = await MovieModel.find({ $text: { $search: req.query.text?.toString()! } });
+            if (!req.query.text?.toString()) {
+                const movies = await MovieModel.find()
+                    .populate({ path: 'genre', select: 'name' })
+                    .sort({ createdAt: 'desc' })
+                    .exec();
+
+                return sendServerResponse(res, {
+                    statusCode: 200,
+                    success: true,
+                    data: movies,
+                    count: movies.length
+                });
+            }
+
+            const movies = await MovieModel.find({ $text: { $search: req.query.text?.toString()! } })
+                .populate({ path: 'genre', select: 'name' })
+                .sort({ createdAt: 'desc' })
+                .exec();
 
             return sendServerResponse(res, {
                 statusCode: 200,
