@@ -249,7 +249,7 @@ export class AuthController {
                     await deleteFile(user.avatarName);
                 }
 
-                const uploadResponse = await uploadFile(file.tempFilePath, `avatars/${user._id}.${fileNameExtension}`);
+                const uploadResponse = await uploadFile(file.tempFilePath, `${process.env.AVATARS_FOLDER}/${user._id}.${fileNameExtension}`);
                 user.avatar = uploadResponse.url;
                 user.avatarName = uploadResponse.name;
                 user.name = name;

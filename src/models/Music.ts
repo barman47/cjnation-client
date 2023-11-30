@@ -6,6 +6,8 @@ export interface Music extends Document {
     artiste: string;
     mediaUrl?: string | null;
     mediaName: string | null;
+    thumbnailUrl?: string | null;
+    thumbnailName: string | null;
     genre: Types.ObjectId | Category;
     year: number;
     createdAt?: Date | null;
@@ -34,6 +36,18 @@ const MusicSchema = new Schema<Music>({
     mediaName: {
         type: String,
         required: [true, 'Media name is required!'],
+        trim: true
+    },
+
+    thumbnailUrl: {
+        type: String,
+        required: [true, 'Thumbnail url is required!'],
+        trim: true
+    },
+
+    thumbnailName: {
+        type: String,
+        required: [true, 'Thumbnail name is required!'],
         trim: true
     },
 
