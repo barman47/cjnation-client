@@ -20,7 +20,7 @@ const useStyles = makeStyles()((theme) => ({
     }
 }));
 
-const PrivacyPolicyPage: React.FC<{}> = () => {
+const PrivacyPolicy: React.FC<{}> = () => {
     const { classes } = useStyles();
 
     return (
@@ -82,4 +82,4 @@ const PrivacyPolicyPage: React.FC<{}> = () => {
     );
 };
 
-export default PrivacyPolicyPage;
+export default PrivacyPolicy;

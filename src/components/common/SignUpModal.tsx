@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     Box,
@@ -180,7 +181,7 @@ const SignUpModal: React.FC<Props> = React.forwardRef<ModalRef, Props>(({ handle
                 <Stack direction="column" spacing={2}>
                     <Typography variant="h5" sx={{ fontWeight: 600 }}>Sign Up</Typography>
                     <Typography variant="body1" className={classes.subtitle}>
-                        By continuing, you are setting up an account and agree to our Terms of Service and Privacy Policy
+                        By continuing, you are setting up an account and agree to our <Link href="/termsOfService" target="_blank">Terms of Service</Link> and <Link href="/privacyPolicy" target="_blank">Privacy Policy</Link>
                     </Typography>
                     <GoogleLogin
                         text="continue_with"
