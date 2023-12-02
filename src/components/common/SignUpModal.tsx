@@ -15,7 +15,9 @@ import {
     TextField,
     Theme,
     Tooltip,
-    Typography
+    Typography,
+    useMediaQuery,
+    useTheme
 } from '@mui/material';
 import { makeStyles } from 'tss-react/mui';
 import { ModalRef, Provider } from '@/utils/constants';
@@ -64,6 +66,10 @@ interface Props {
 const SignUpModal: React.FC<Props> = React.forwardRef<ModalRef, Props>(({ handleOpenSignInModal }: Props, ref: any) => {
     const { classes } = useStyles();
     const dispatch: AppDispatch = useDispatch();
+    const theme = useTheme();
+    const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
+    const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
     const authError = useSelector(selectAuthError);
     const loading = useSelector(selectIsAuthLoading);
@@ -75,6 +81,21 @@ const SignUpModal: React.FC<Props> = React.forwardRef<ModalRef, Props>(({ handle
     const [open, setOpen] = React.useState(false);
     const [showPassword, setShowPassword] = React.useState(false);
     const [errors, setErrors] = React.useState<UserRegistrationData>({} as UserRegistrationData);
+    const [buttonWidth, setButtonWidth] = React.useState('');
+
+    React.useEffect(() => {
+        
+        if (isDesktop) {
+            setButtonWidth('1000');
+        }
+        if (isTablet) {
+            setButtonWidth('400');
+        }
+        if (isMobile) {
+            setButtonWidth('320');
+        }
+    }, [isDesktop, isMobile, isTablet]);
+
     
     const handleOpen = () => setOpen(true);
     const handleClose = React.useCallback(() => {
@@ -198,8 +219,7 @@ const SignUpModal: React.FC<Props> = React.forwardRef<ModalRef, Props>(({ handle
                         ux_mode="popup"
                         logo_alignment="left"
                         size="large"
-                        width="1000"
-
+                        width={buttonWidth}
                     />
                     <Divider>OR</Divider>
                     <form onSubmit={handleSubmit}>
