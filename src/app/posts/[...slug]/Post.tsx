@@ -278,6 +278,5 @@ const Post: React.FC<Props> = ({ post, likes }) => {
         </>
     );
 };
-<Stack direction="row" alignItems="center"></Stack>
 
 export default Post;

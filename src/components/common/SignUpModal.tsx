@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     Box,
@@ -14,7 +15,9 @@ import {
     TextField,
     Theme,
     Tooltip,
-    Typography
+    Typography,
+    useMediaQuery,
+    useTheme
 } from '@mui/material';
 import { makeStyles } from 'tss-react/mui';
 import { ModalRef, Provider } from '@/utils/constants';
@@ -63,6 +66,10 @@ interface Props {
 const SignUpModal: React.FC<Props> = React.forwardRef<ModalRef, Props>(({ handleOpenSignInModal }: Props, ref: any) => {
     const { classes } = useStyles();
     const dispatch: AppDispatch = useDispatch();
+    const theme = useTheme();
+    const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
+    const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
     const authError = useSelector(selectAuthError);
     const loading = useSelector(selectIsAuthLoading);
@@ -74,6 +81,21 @@ const SignUpModal: React.FC<Props> = React.forwardRef<ModalRef, Props>(({ handle
     const [open, setOpen] = React.useState(false);
     const [showPassword, setShowPassword] = React.useState(false);
     const [errors, setErrors] = React.useState<UserRegistrationData>({} as UserRegistrationData);
+    const [buttonWidth, setButtonWidth] = React.useState('');
+
+    React.useEffect(() => {
+        
+        if (isDesktop) {
+            setButtonWidth('1000');
+        }
+        if (isTablet) {
+            setButtonWidth('400');
+        }
+        if (isMobile) {
+            setButtonWidth('320');
+        }
+    }, [isDesktop, isMobile, isTablet]);
+
     
     const handleOpen = () => setOpen(true);
     const handleClose = React.useCallback(() => {
@@ -180,7 +202,7 @@ const SignUpModal: React.FC<Props> = React.forwardRef<ModalRef, Props>(({ handle
                 <Stack direction="column" spacing={2}>
                     <Typography variant="h5" sx={{ fontWeight: 600 }}>Sign Up</Typography>
                     <Typography variant="body1" className={classes.subtitle}>
-                        By continuing, you are setting up an account and agree to our Terms of Service and Privacy Policy
+                        By continuing, you are setting up an account and agree to our <Link href="/termsOfService" target="_blank">Terms of Service</Link> and <Link href="/privacyPolicy" target="_blank">Privacy Policy</Link>
                     </Typography>
                     <GoogleLogin
                         text="continue_with"
@@ -197,8 +219,7 @@ const SignUpModal: React.FC<Props> = React.forwardRef<ModalRef, Props>(({ handle
                         ux_mode="popup"
                         logo_alignment="left"
                         size="large"
-                        width="1000"
-
+                        width={buttonWidth}
                     />
                     <Divider>OR</Divider>
                     <form onSubmit={handleSubmit}>

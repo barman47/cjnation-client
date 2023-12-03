@@ -5,8 +5,9 @@ import Image from 'next/image';
 import { Box, Stack, Theme, Typography } from '@mui/material';
 import { makeStyles } from 'tss-react/mui';
 
-import postImage from '../../../public/assets/avatar.jpeg';
 import { OFF_BLACK } from '../theme';
+import { Post } from '@/interfaces';
+import { capitalize } from 'lodash';
 
 const useStyles = makeStyles()((theme: Theme) => ({
     root: {
@@ -48,27 +49,31 @@ const useStyles = makeStyles()((theme: Theme) => ({
     }
 }));
 
-const FeaturedPost: React.FC<{}> = () => {
+interface Props {
+    post: Post;
+}
+
+const FeaturedPost: React.FC<Props> = ({ post }) => {
     const { classes } = useStyles();
 
     return (
         <Stack direction="row" spacing={2} alignItems="flex-start" className={classes.root}>
             <Box component="div">
                 <Image 
-                    src={postImage.src}
+                    src={post.mediaUrl!}
                     width={70}
                     height={70}
-                    alt="Post image"
+                    alt={post.title}
                     className={classes.postImage}
                 />
             </Box>
             <Stack direction="column" spacing={2}>
                 <Typography variant="h6" className={classes.title}>
-                    <Link href="/" className={classes.link}>
-                        Doing business in Doing Busines in the 21st Century Doing business in Doing Busines in the 21st Century Doing business in Doing Busines in the 21st Century
+                    <Link href={`/posts/${post.slug}/${post._id}`} className={classes.link}>
+                        {post.title}
                     </Link>
                 </Typography>
-                <Typography variant="subtitle2" className={classes.author}>By John Akano</Typography>
+                <Typography variant="subtitle2" className={classes.author}>By {typeof post.author === 'string' ? '' : capitalize(post.author.name)}</Typography>
             </Stack>
         </Stack>
     );

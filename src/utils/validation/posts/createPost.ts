@@ -14,7 +14,7 @@ export const validateCreatePost = (data: PostData): ErrorObject<PostData> => {
     data.mediaUrl = !isEmpty(data.mediaUrl) ?  data.mediaUrl : '';
     data.author = !isEmpty(data.author) ?  data.author : '';
 
-    if (Validator.isEmpty(data.category)) {
+    if (Validator.isEmpty(data.category.toString())) {
         errors.category = 'Post category is required!';
     }
 
@@ -33,7 +33,7 @@ export const validateCreatePost = (data: PostData): ErrorObject<PostData> => {
         errors.mediaUrl = 'Post image is required!';
     }
 
-    if (Validator.isEmpty(data.author)) {
+    if (Validator.isEmpty(data.author.toString())) {
         errors.author = 'Post author is required!';
     }
     

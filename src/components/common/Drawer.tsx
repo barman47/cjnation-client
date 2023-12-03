@@ -1,10 +1,22 @@
 'use client';
 
 import * as React from 'react';
+import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useDispatch, useSelector } from 'react-redux';
 import { styled, useTheme, Theme, CSSObject } from '@mui/material/styles';
-import { HomeOutline, AccountCircleOutline, Menu as MenuIcon, TrayArrowDown, PencilOutline, Logout } from 'mdi-material-ui';
+import { 
+    HomeOutline, 
+    AccountCircleOutline, 
+    Menu as MenuIcon, 
+    TrayArrowDown, 
+    PencilOutline, 
+    Logout, 
+    ViewDashboard, 
+    AccountGroupOutline, 
+    NewspaperVariantOutline,
+    Server
+} from 'mdi-material-ui';
 import {
     Avatar,
     Box,
@@ -28,7 +40,7 @@ import {
 import MuiDrawer from '@mui/material/Drawer';
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
 
-import { CLOSED_DRAWER_WIDTH, OPEN_DRAWER_WIDTH } from '@/utils/constants';
+import { CLOSED_DRAWER_WIDTH, OPEN_DRAWER_WIDTH, Role } from '@/utils/constants';
 import { closeDrawer, selectIsDrawerOpen, setToast, toggleDrawer } from '@/redux/features/appSlice';
 import { AppDispatch } from '@/redux/store';
 import SearchBox from './SearchBox';
@@ -130,13 +142,13 @@ const LogoutMenuItem = styled(MenuItem)(({ theme }) => ({
     color: theme.palette.error.main
 }));
 
-interface HomeLink {
+interface NavLink {
     icon: React.ReactElement;
     text: string;
     url: string;
 }
 
-const links: HomeLink[] = [
+const userLinks: NavLink[] = [
     {
         icon: <HomeOutline />,
         text: 'Home',
@@ -159,12 +171,36 @@ const links: HomeLink[] = [
     },
 ];
 
+const adminLinks: NavLink[] = [
+    {
+        icon: <ViewDashboard />,
+        text: 'Dashboard',
+        url: '/dashboard/admin/home'
+    },
+    {
+        icon: <AccountGroupOutline />,
+        text: 'User Management',
+        url: '/dashboard/admin/users'
+    },
+    {
+        icon: <NewspaperVariantOutline />,
+        text: 'Blog Management',
+        url: '/dashboard/admin/blogs'
+    },
+    {
+        icon: <Server />,
+        text: 'Downloads',
+        url: '/dashboard/admin/downloads'
+    },
+];
+
 interface Props {
     handleOpenSignInModal: () => void;
 }
 
 const AppDrawer: React.FC<Props> = ({ handleOpenSignInModal }: Props) => {
     const dispatch: AppDispatch = useDispatch();
+    const pathname = usePathname();
 
     const isAuthenticated = useSelector(selectIsUserAuthenticated);
     const user = useSelector(selectUser);
@@ -219,9 +255,12 @@ const AppDrawer: React.FC<Props> = ({ handleOpenSignInModal }: Props) => {
                     >
                         <MenuIcon />
                     </IconButton>
-                    <SearchBox 
-                        placeholder="Find what you are looking for"
-                    />
+                    {pathname === '/' && 
+                        <SearchBox 
+                            placeholder="Find what you are looking for"
+                            searchHandler={() => {}}
+                        />
+                    }
                     {(!matches && !isAuthenticated) &&
                         <Box component="div">
                             <Button
@@ -296,7 +335,7 @@ const AppDrawer: React.FC<Props> = ({ handleOpenSignInModal }: Props) => {
                     </DrawerHeader>
                     <Divider />
                     <List>
-                        {links.map((item: HomeLink) => (
+                        {userLinks.map((item: NavLink) => (
                             <ListItem key={item.text} disablePadding sx={{ display: 'block' }}>
                                 <ListItemButton
                                     LinkComponent={Link}
@@ -320,6 +359,35 @@ const AppDrawer: React.FC<Props> = ({ handleOpenSignInModal }: Props) => {
                                 </ListItemButton>
                             </ListItem>
                         ))}
+                        <Divider />
+                        {user.role === Role.ADMIN && 
+                            <>
+                                {adminLinks.map((item: NavLink) => (
+                                    <ListItem key={item.text} disablePadding sx={{ display: 'block' }}>
+                                        <ListItemButton
+                                            LinkComponent={Link}
+                                            href={item.url}
+                                            sx={{
+                                                minHeight: 48,
+                                                justifyContent: open ? 'initial' : 'center',
+                                                px: 2.5,
+                                            }}
+                                        >
+                                            <ListItemIcon
+                                                sx={{
+                                                    minWidth: 0,
+                                                    mr: 3,
+                                                    justifyContent: 'center',
+                                                }}
+                                            >
+                                                {item.icon}
+                                            </ListItemIcon>
+                                            <ListItemText primary={item.text} />
+                                        </ListItemButton>
+                                    </ListItem>
+                                ))}
+                            </>
+                        }
                         {!isAuthenticated && 
                             <>
                                 <ListItem>
@@ -361,7 +429,7 @@ const AppDrawer: React.FC<Props> = ({ handleOpenSignInModal }: Props) => {
                     </DrawerHeader>
                     <Divider />
                     <List>
-                        {links.map((item: HomeLink) => (
+                        {userLinks.map((item: NavLink) => (
                             <ListItem key={item.text} disablePadding sx={{ display: 'block' }}>
                                 <ListItemButton
                                     LinkComponent={Link}
@@ -385,6 +453,35 @@ const AppDrawer: React.FC<Props> = ({ handleOpenSignInModal }: Props) => {
                                 </ListItemButton>
                             </ListItem>
                         ))}
+                        <Divider />
+                        {user.role === Role.ADMIN && 
+                            <>
+                                {adminLinks.map((item: NavLink) => (
+                                    <ListItem key={item.text} disablePadding sx={{ display: 'block' }}>
+                                        <ListItemButton
+                                            LinkComponent={Link}
+                                            href={item.url}
+                                            sx={{
+                                                minHeight: 48,
+                                                justifyContent: open ? 'initial' : 'center',
+                                                px: 2.5,
+                                            }}
+                                        >
+                                            <ListItemIcon
+                                                sx={{
+                                                    minWidth: 0,
+                                                    mr: open ? 3 : 'auto',
+                                                    justifyContent: 'center',
+                                                }}
+                                            >
+                                                {item.icon}
+                                            </ListItemIcon>
+                                            <ListItemText primary={item.text} sx={{ opacity: open ? 1 : 0 }} />
+                                        </ListItemButton>
+                                    </ListItem>
+                                ))} 
+                            </>
+                        }
                     </List>
                 </Drawer>
             }

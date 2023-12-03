@@ -9,6 +9,8 @@ import auth from './features/authSlice';
 import categories from './features/categoriesSlice';
 import comments from './features/commentsSlice';
 import likes from './features/likesSlice';
+import movies from './features/moviesSlice';
+import music from './features/musicSlice';
 import posts from './features/postsSlice';
 
 const rootReducer = combineReducers({
@@ -17,6 +19,8 @@ const rootReducer = combineReducers({
     categories,
     comments,
     likes,
+    movies,
+    music,
     posts
 });
 

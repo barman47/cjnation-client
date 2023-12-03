@@ -55,7 +55,6 @@ export const comments = createSlice({
             state.isLoading = true;
         })
         .addCase(addComment.fulfilled, (state, action) => {
-            console.log(action);
             state.isLoading = false;
             state.msg = action.payload.msg || 'Comment added successfully';
         })

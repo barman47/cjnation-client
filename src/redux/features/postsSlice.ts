@@ -26,12 +26,48 @@ const initialState: AuthState = {
     error: {} as PostError
 };
 
+export const getPost = createAsyncThunk<ApiResponse, string, { rejectValue: ApiErrorResponse }>('posts/getPost', async (postId, { rejectWithValue }) => {
+    try {
+        const res = await axios.get<ApiResponse>(`${URL}/${postId}`);
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to get post');
+    }
+});
+
+export const getPendingPosts = createAsyncThunk<ApiResponse, void, { rejectValue: ApiErrorResponse }>('posts/getPendingPosts', async (_, { rejectWithValue }) => {
+    try {
+        const res = await axios.get<ApiResponse>(`${URL}/pending/posts`);
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to get pending post');
+    }
+});
+
+export const getApprovedPosts = createAsyncThunk<ApiResponse, void, { rejectValue: ApiErrorResponse }>('posts/getApprovedPosts', async (_, { rejectWithValue }) => {
+    try {
+        const res = await axios.get<ApiResponse>(`${URL}/approved/posts`);
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to get approved post');
+    }
+});
+
 export const createDraft = createAsyncThunk<ApiResponse, FormData, { rejectValue: ApiErrorResponse }>('posts/createDraft', async (draft, { rejectWithValue }) => {
     try {
         const res = await axios.post<ApiResponse>(`${URL}/drafts`, draft);
         return res.data;
     } catch (err) {
         return handleError(err, rejectWithValue, 'Failed to save post');
+    }
+});
+
+export const saveDraft = createAsyncThunk<ApiResponse, {draft: FormData, postId: string }, { rejectValue: ApiErrorResponse }>('posts/saveDraft', async ({ draft, postId}, { rejectWithValue }) => {
+    try {
+        const res = await axios.patch<ApiResponse>(`${URL}/drafts/save/${postId}`, draft);
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to save draft');
     }
 });
 
@@ -53,10 +89,95 @@ export const getPostsByCategory = createAsyncThunk<ApiResponse, string, { reject
     }
 });
 
+export const getPostsForUser = createAsyncThunk<ApiResponse, void, { rejectValue: ApiErrorResponse }>('posts/getPostsForUser', async (_, { rejectWithValue }) => {
+    try {
+        const res = await axios.get<ApiResponse>(`${URL}/user/posts`);
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to get user\'s posts');
+    }
+});
+
+export const searchForApprovedPosts = createAsyncThunk<ApiResponse, string, { rejectValue: ApiErrorResponse }>('posts/searchForApprovedPosts', async (searchQuery, { rejectWithValue }) => {
+    try {
+        const res = await axios.get<ApiResponse>(`${URL}/approved/search?text=${searchQuery}`);
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to find posts');
+    }
+});
+
+export const searchForPendingPosts = createAsyncThunk<ApiResponse, string, { rejectValue: ApiErrorResponse }>('posts/searchForPendingPosts', async (searchQuery, { rejectWithValue }) => {
+    try {
+        const res = await axios.get<ApiResponse>(`${URL}/pending/search?text=${searchQuery}`);
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to find posts');
+    }
+});
+
+export const editPost = createAsyncThunk<ApiResponse, { post: FormData, postId: string }, { rejectValue: ApiErrorResponse }>('posts/editPost', async ({ post, postId}, { rejectWithValue }) => {
+    try {
+        const res = await axios.put<ApiResponse>(`${URL}/${postId}`, post);
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to save post');
+    }
+});
+
+export const publishPost = createAsyncThunk<ApiResponse, string, { rejectValue: ApiErrorResponse }>('posts/publishPost', async (postId, { rejectWithValue }) => {
+    try {
+        const res = await axios.patch<ApiResponse>(`${URL}/publishPost/${postId}`);
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to publish post');
+    }
+});
+
+export const deletePost = createAsyncThunk<ApiResponse, string, { rejectValue: ApiErrorResponse }>('posts/deletePost', async (postId, { rejectWithValue }) => {
+    try {
+        const res = await axios.delete<ApiResponse>(`${URL}/${postId}`);
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to delete post');
+    }
+});
+
+export const removePostImage = createAsyncThunk<ApiResponse, { postId: string; mediaName: string }, { rejectValue: ApiErrorResponse }>('posts/removePostImage', async ({ postId, mediaName }, { rejectWithValue }) => {
+    try {
+        const res = await axios.patch<ApiResponse>(`${URL}/image/remove/${postId}`, { mediaName });
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to remove post image');
+    }
+});
+
+export const approvePost = createAsyncThunk<ApiResponse, string , { rejectValue: ApiErrorResponse }>('posts/approvePost', async (postId, { rejectWithValue }) => {
+    try {
+        const res = await axios.patch<ApiResponse>(`${URL}/approvePost/${postId}`);
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to approve post');
+    }
+});
+
+export const rejectPost = createAsyncThunk<ApiResponse, { postId: string; rejectionReason: string }, { rejectValue: ApiErrorResponse }>('posts/rejectPost', async ({ postId, rejectionReason }, { rejectWithValue }) => {
+    try {
+        const res = await axios.patch<ApiResponse>(`${URL}/rejectPost/${postId}`, { rejectionReason });
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to reject post');
+    }
+});
+
 export const posts = createSlice({
     name: 'posts',
     initialState,
     reducers: {
+        setPost: (state, action: PayloadAction<Post>) => {
+            state.post = action.payload;
+        },
+
         setPostMessage: (state, action: PayloadAction<string | null>) => {
             state.msg = action.payload;
         },
@@ -71,7 +192,80 @@ export const posts = createSlice({
     },
     extraReducers(builder) {
         builder
+        .addCase(getPost.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(getPost.fulfilled, (state, action) => {
+            state.isLoading = false;
+            state.post = action.payload.data;
+        })
+        .addCase(getPost.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
+
+        .addCase(getPendingPosts.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(getPendingPosts.fulfilled, (state, action) => {
+            state.isLoading = false;
+            state.posts = action.payload.data;
+        })
+        .addCase(getPendingPosts.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
+
+        .addCase(getApprovedPosts.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(getApprovedPosts.fulfilled, (state, action) => {
+            state.isLoading = false;
+            state.posts = action.payload.data;
+        })
+        .addCase(getApprovedPosts.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
+
+        .addCase(searchForApprovedPosts.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(searchForApprovedPosts.fulfilled, (state, action) => {
+            state.isLoading = false;
+            state.posts = action.payload.data;
+        })
+        .addCase(searchForApprovedPosts.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
+
+        .addCase(searchForPendingPosts.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(searchForPendingPosts.fulfilled, (state, action) => {
+            state.isLoading = false;
+            state.posts = action.payload.data;
+        })
+        .addCase(searchForPendingPosts.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
+
         .addCase(createDraft.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(editPost.fulfilled, (state, action) => {
+            state.isLoading = false;
+            state.post = action.payload.data;
+            state.msg = action.payload.msg || 'Your blog has been saved succcessfully. You can always come back and continue writing.';
+        })
+        .addCase(editPost.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
+
+        .addCase(editPost.pending, (state) => {
             state.isLoading = true;
         })
         .addCase(createDraft.fulfilled, (state, action) => {
@@ -84,13 +278,26 @@ export const posts = createSlice({
             state.error = action.payload?.data;
         })
 
+        .addCase(saveDraft.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(saveDraft.fulfilled, (state, action) => {
+            state.isLoading = false;
+            state.post = action.payload.data;
+            state.msg = action.payload.msg || 'Your blog has been saved succcessfully. You can always come back and continue writing.';
+        })
+        .addCase(saveDraft.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
+
         .addCase(createPost.pending, (state) => {
             state.isLoading = true;
         })
         .addCase(createPost.fulfilled, (state, action) => {
             state.isLoading = false;
             state.post = action.payload.data;
-            state.msg = action.payload.msg || 'Your blog has been submitted and will reviewed and approved shortly by an admin';
+            state.msg = action.payload.msg || 'Your blog has been submitted and will be reviewed and approved shortly by an admin';
         })
         .addCase(createPost.rejected, (state, action) => {
             state.isLoading = false;
@@ -109,12 +316,90 @@ export const posts = createSlice({
             state.error = action.payload?.data;
         })
 
-        
+        .addCase(getPostsForUser.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(getPostsForUser.fulfilled, (state, action) => {
+            state.isLoading = false;
+            state.posts = [...action.payload.data];
+        })
+        .addCase(getPostsForUser.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
+
+        .addCase(publishPost.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(publishPost.fulfilled, (state, action) => {
+            const post = action.payload.data;
+            const posts = [...state.posts];
+            const postIndex = posts.findIndex((item: Post) => item._id === post._id);
+            posts.splice(postIndex, 1, post);
+            state.isLoading = false;
+            state.posts = [...posts];
+            state.msg = action.payload.msg || 'Post published successfully';
+        })
+        .addCase(publishPost.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
+
+        .addCase(deletePost.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(deletePost.fulfilled, (state, action) => {
+            const post = action.payload.data;
+            state.posts = state.posts.filter((item: Post) => post._id !== item._id);
+            state.msg = action.payload.msg || 'Post deleted successfully';
+            state.isLoading = false;
+        })
+        .addCase(deletePost.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
+
+        .addCase(removePostImage.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(removePostImage.fulfilled, (state, action) => {
+            state.post = action.payload.data
+            state.isLoading = false;
+        })
+        .addCase(removePostImage.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
+
+        .addCase(approvePost.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(approvePost.fulfilled, (state, action) => {
+            state.isLoading = false;
+            state.msg = action.payload.msg || 'Post approved successfully'
+        })
+        .addCase(approvePost.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
+
+        .addCase(rejectPost.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(rejectPost.fulfilled, (state, action) => {
+            state.isLoading = false;
+            state.msg = action.payload.msg || 'Post rejected successfully'
+        })
+        .addCase(rejectPost.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
     }
 });
 
 export const {
     clearError,
+    setPost,
     setPosts,
     setPostMessage,
 } = posts.actions;

@@ -21,13 +21,13 @@ import _ from 'lodash';
 
 import TextEditor from '@/components/common/TextEditor';
 import TextInput from '@/components/common/TextInput';
-import { Categories, ModalRef, TITLE_LENGTH } from '@/utils/constants';
+import { Categories, ModalRef, PostStatus, TITLE_LENGTH } from '@/utils/constants';
 import { PostData, validateCreateDraft, validateCreatePost } from '@/utils/validation/posts';
 import { AppDispatch } from '@/redux/store';
 import { setToast } from '@/redux/features/appSlice';
 import { selectUser } from '@/redux/features/authSlice';
 import { LIGHT_GREY } from '@/app/theme';
-import { clearError, createDraft, createPost, selectIsPostLoading, selectPostErrors, selectPostMessage, setPostMessage } from '@/redux/features/postsSlice';
+import { clearError, createDraft, createPost, editPost, removePostImage, saveDraft, selectIsPostLoading, selectPost, selectPostErrors, selectPostMessage, setPostMessage } from '@/redux/features/postsSlice';
 import { clearCategoriesErrors, getCategoriesByType, selectCategoires, selectCategoryErrors } from '@/redux/features/categoriesSlice';
 import { Category } from '@/interfaces';
 import { getCategoryId } from '@/utils/getCategoryId';
@@ -54,7 +54,11 @@ const useStyles = makeStyles()((theme) => ({
 
 let fetchAttempt = 1;
 
-const CreatePostForm: React.FC<{}> = () => {
+interface Props {
+    edit?: boolean;
+}
+
+const CreatePostForm: React.FC<Props> = ({ edit }) => {
     const { classes } = useStyles();
     const dispatch: AppDispatch = useDispatch();
     const theme = useTheme();
@@ -62,6 +66,7 @@ const CreatePostForm: React.FC<{}> = () => {
     const loading = useSelector(selectIsPostLoading);
     const msg = useSelector(selectPostMessage);
     const user = useSelector(selectUser);
+    const post = useSelector(selectPost);
     const postErrors = useSelector(selectPostErrors);
     
     const categories = useSelector(selectCategoires);
@@ -77,6 +82,20 @@ const CreatePostForm: React.FC<{}> = () => {
     const fileUploadRef = React.useRef<HTMLInputElement>(null);
     const postSuccessModalRef = React.useRef<ModalRef | null>(null);
 
+    React.useEffect(() => {
+        if (edit && !_.isEmpty(post)) {
+            if (post.mediaUrl) {
+                setImageSrc(post.mediaUrl);
+            }
+            setTitle(post.title);
+            setBody(post.body);
+            if (typeof post.category === 'string') {
+                setCategory(capitalize(post.category));
+            } else {
+                setCategory(capitalize(post.category.name));
+            }
+        }
+    }, [edit, post]);
     
 
     React.useEffect(() => {
@@ -127,6 +146,9 @@ const CreatePostForm: React.FC<{}> = () => {
     };
 
     const handleRemovePhoto = () => {
+        if (post.mediaUrl) {
+            dispatch(removePostImage({ postId: post._id!, mediaName: post.mediaName! }));
+        }
         setImage('' as unknown as File);
         setImageSrc('');
     };
@@ -162,6 +184,10 @@ const CreatePostForm: React.FC<{}> = () => {
         if (image) {
             data.append('image', image);
         }
+
+        if (edit) {
+            return handleSaveDraft(data);
+        }
         dispatch(createDraft(data));
     };
 
@@ -191,7 +217,20 @@ const CreatePostForm: React.FC<{}> = () => {
         data.append('category', getCategoryId(category, categories));
         data.append('author', user._id!);
         data.append('image', image);
+
+        if (edit) {
+            return handleEditPost(data);
+        }
         dispatch(createPost(data));
+    };
+
+    const handleEditPost = (data: FormData): void => {
+        data.append('status', PostStatus.PUBLISHED);
+        dispatch(editPost({ post: data, postId: post._id! }));
+    };
+
+    const handleSaveDraft = (draft: FormData): void => {
+        dispatch(saveDraft({ draft, postId: post._id! }));
     };
 
     return (
@@ -210,7 +249,7 @@ const CreatePostForm: React.FC<{}> = () => {
                             disabled={loading}
                         >
                             <MenuItem value="" disabled selected>Choose a category</MenuItem>
-                            {categories?.length && categories.map((category: Category) => (
+                            {categories?.length > 0 && categories.map((category: Category) => (
                                 <MenuItem key={category._id} value={capitalize(category.name)}>{capitalize(category.name)}</MenuItem>
                             ))}
                         </Select>
