@@ -13,7 +13,7 @@ import { makeStyles } from 'tss-react/mui';
 import { selectUser } from '@/redux/features/authSlice';
 import { capitalize } from '@/utils/capitalize';
 import { grey } from '@mui/material/colors';
-import PendingPosts from './PendingPosts';
+import PendingPosts from '../blogs/PendingPosts';
 import { AppDispatch } from '@/redux/store';
 import { getPendingPosts } from '@/redux/features/postsSlice';
 
@@ -74,7 +74,7 @@ const Dashboard: React.FC<{}> = () => {
                     </Box>
                 </Grid>
             </Grid>
-            <PendingPosts />
+            <PendingPosts showTitle={true} />
         </Box>
     );
 };

@@ -42,7 +42,7 @@ const TermsOfService: React.FC<{}> = () => {
                 </Box>
                 <Box component="section">
                     <Typography variant="h5" className={classes.heading}>User Accounts</Typography>
-                    <Typography variant="body1">f you create an account on the Website, you are responsible for maintaining the security of your account and for all activities that occur under your account.</Typography>
+                    <Typography variant="body1">If you create an account on the Website, you are responsible for maintaining the security of your account and for all activities that occur under your account.</Typography>
                 </Box>
                 <Box component="section">
                     <Typography variant="h5" className={classes.heading}>Content</Typography>

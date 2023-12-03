@@ -44,6 +44,15 @@ export const getPendingPosts = createAsyncThunk<ApiResponse, void, { rejectValue
     }
 });
 
+export const getPublishedPosts = createAsyncThunk<ApiResponse, void, { rejectValue: ApiErrorResponse }>('posts/getPublishedPosts', async (_, { rejectWithValue }) => {
+    try {
+        const res = await axios.get<ApiResponse>(`${URL}/published/posts`);
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to get published post');
+    }
+});
+
 export const createDraft = createAsyncThunk<ApiResponse, FormData, { rejectValue: ApiErrorResponse }>('posts/createDraft', async (draft, { rejectWithValue }) => {
     try {
         const res = await axios.post<ApiResponse>(`${URL}/drafts`, draft);
@@ -185,6 +194,18 @@ export const posts = createSlice({
             state.posts = action.payload.data;
         })
         .addCase(getPendingPosts.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
+
+        .addCase(getPublishedPosts.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(getPublishedPosts.fulfilled, (state, action) => {
+            state.isLoading = false;
+            state.posts = action.payload.data;
+        })
+        .addCase(getPublishedPosts.rejected, (state, action) => {
             state.isLoading = false;
             state.error = action.payload?.data;
         })

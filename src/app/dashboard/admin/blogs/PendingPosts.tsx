@@ -32,7 +32,11 @@ const useStyles = makeStyles()((theme) => ({
     }
 }));
 
-const PendingPosts: React.FC<{}> = () => {
+interface Props {
+    showTitle?: boolean
+}
+
+const PendingPosts: React.FC<Props> = ({ showTitle }) => {
     const { classes } = useStyles();
     const dispatch: AppDispatch = useDispatch();
     const router = useRouter();
@@ -46,7 +50,7 @@ const PendingPosts: React.FC<{}> = () => {
 
     return (
         <Box component="div" className={classes.root}>
-            <Typography variant="h6" sx={{ marginTop: 5 }}>Pending Posts</Typography>
+            {showTitle && <Typography variant="h6" sx={{ marginTop: 5 }}>New Submissions</Typography>}
                 {pendingPosts.length ? 
                     <Stack direction="column" spacing={2} className={classes.container}>
                         {pendingPosts.map((post: Post) => (

@@ -101,7 +101,7 @@ const ReviewPost: React.FC<{}> = () => {
             }));
             declinePostModalRef.current?.closeModal();
             dispatch(setPostMessage(null));
-            router.replace('/dashboard/admin/home');
+            router.replace('/dashboard/admin/blogs');
         }
     }, [dispatch, msg, router]);
 
