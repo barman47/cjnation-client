@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 
-import { Divider, Stack } from '@mui/material';
+import { Divider, Stack, Typography } from '@mui/material';
 import _ from 'lodash';
 
 import PublishedPost from './PublishedPost';
@@ -19,12 +19,19 @@ const PublishedPosts: React.FC<Props> = ({ handleDeletePost, posts }) => {
             direction="column"
             spacing={5}
         > 
-            {posts.map((post: Post) => (
-                <React.Fragment key={post._id}>
-                    <PublishedPost post={post} handleDeletePost={handleDeletePost} />
-                    <Divider />
-                </React.Fragment>
-            ))}
+            {posts.length ? 
+                    <>
+                        {posts.map((post: Post) => (
+                            <React.Fragment key={post._id}>
+                                <PublishedPost post={post} handleDeletePost={handleDeletePost} />
+                                <Divider />
+                            </React.Fragment>
+                        ))}
+                    </>
+                    :
+                    <Typography variant="body2">There are no posts found</Typography>
+                }
+            
         </Stack>
     );
 };

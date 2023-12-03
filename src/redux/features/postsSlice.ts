@@ -44,12 +44,12 @@ export const getPendingPosts = createAsyncThunk<ApiResponse, void, { rejectValue
     }
 });
 
-export const getPublishedPosts = createAsyncThunk<ApiResponse, void, { rejectValue: ApiErrorResponse }>('posts/getPublishedPosts', async (_, { rejectWithValue }) => {
+export const getApprovedPosts = createAsyncThunk<ApiResponse, void, { rejectValue: ApiErrorResponse }>('posts/getApprovedPosts', async (_, { rejectWithValue }) => {
     try {
-        const res = await axios.get<ApiResponse>(`${URL}/published/posts`);
+        const res = await axios.get<ApiResponse>(`${URL}/approved/posts`);
         return res.data;
     } catch (err) {
-        return handleError(err, rejectWithValue, 'Failed to get published post');
+        return handleError(err, rejectWithValue, 'Failed to get approved post');
     }
 });
 
@@ -95,6 +95,24 @@ export const getPostsForUser = createAsyncThunk<ApiResponse, void, { rejectValue
         return res.data;
     } catch (err) {
         return handleError(err, rejectWithValue, 'Failed to get user\'s posts');
+    }
+});
+
+export const searchForApprovedPosts = createAsyncThunk<ApiResponse, string, { rejectValue: ApiErrorResponse }>('posts/searchForApprovedPosts', async (searchQuery, { rejectWithValue }) => {
+    try {
+        const res = await axios.get<ApiResponse>(`${URL}/approved/search?text=${searchQuery}`);
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to find posts');
+    }
+});
+
+export const searchForPendingPosts = createAsyncThunk<ApiResponse, string, { rejectValue: ApiErrorResponse }>('posts/searchForPendingPosts', async (searchQuery, { rejectWithValue }) => {
+    try {
+        const res = await axios.get<ApiResponse>(`${URL}/pending/search?text=${searchQuery}`);
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to find posts');
     }
 });
 
@@ -198,14 +216,38 @@ export const posts = createSlice({
             state.error = action.payload?.data;
         })
 
-        .addCase(getPublishedPosts.pending, (state) => {
+        .addCase(getApprovedPosts.pending, (state) => {
             state.isLoading = true;
         })
-        .addCase(getPublishedPosts.fulfilled, (state, action) => {
+        .addCase(getApprovedPosts.fulfilled, (state, action) => {
             state.isLoading = false;
             state.posts = action.payload.data;
         })
-        .addCase(getPublishedPosts.rejected, (state, action) => {
+        .addCase(getApprovedPosts.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
+
+        .addCase(searchForApprovedPosts.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(searchForApprovedPosts.fulfilled, (state, action) => {
+            state.isLoading = false;
+            state.posts = action.payload.data;
+        })
+        .addCase(searchForApprovedPosts.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
+
+        .addCase(searchForPendingPosts.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(searchForPendingPosts.fulfilled, (state, action) => {
+            state.isLoading = false;
+            state.posts = action.payload.data;
+        })
+        .addCase(searchForPendingPosts.rejected, (state, action) => {
             state.isLoading = false;
             state.error = action.payload?.data;
         })

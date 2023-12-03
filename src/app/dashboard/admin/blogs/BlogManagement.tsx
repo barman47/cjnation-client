@@ -22,11 +22,12 @@ import { setToast } from '@/redux/features/appSlice';
 import { AppDispatch } from '@/redux/store';
 import { useQueryState } from 'next-usequerystate';
 import debounce from '@/utils/debounce';
-import { clearError, deletePost, getPendingPosts, getPublishedPosts, selectPostErrors, selectPostMessage, selectPosts, setPostMessage, setPosts } from '@/redux/features/postsSlice';
+import { clearError, deletePost, getPendingPosts, getApprovedPosts, selectPostErrors, selectPostMessage, selectPosts, setPostMessage, setPosts, searchForApprovedPosts, searchForPendingPosts } from '@/redux/features/postsSlice';
 import { Plus } from 'mdi-material-ui';
 import PendingPosts from './PendingPosts';
 import PublishedPosts from './PublishedPosts';
 import Loading from '@/components/common/Loading';
+import AddCategoryModal from './AddCategoryModal';
 
 function a11yProps(index: number) {
     return {
@@ -60,7 +61,7 @@ const BlogManagement: React.FC<{}> = () => {
     const posts = useSelector(selectPosts);
     const msg = useSelector(selectPostMessage);
 
-    const [_searchText, setSearchText] = useQueryState('text');
+    const [searchText, setSearchText] = useQueryState('text');
 
     const [value, setValue] = React.useState(0);
     const [loading, setLoading] = React.useState(false);
@@ -70,9 +71,17 @@ const BlogManagement: React.FC<{}> = () => {
     const postErrors = useSelector(selectPostErrors);
 
     React.useEffect(() => {
+        if (searchText) {
+            handleSearchPosts(searchText);
+        }
+
+        // eslint-disable-next-line
+    }, []);
+
+    React.useEffect(() => {
         dispatch(setPosts([]));
         if (value === 0) {
-            dispatch(getPublishedPosts());
+            dispatch(getApprovedPosts());
         }
 
         if (value === 1) {
@@ -103,18 +112,19 @@ const BlogManagement: React.FC<{}> = () => {
         }
     }, [postErrors, dispatch]);
 
-    const handleSearch = (_searchText: string) => {
+    const handleSearch = (searchText: string) => {
+        console.log(searchText)
         if (value === 0) {
-            // dispatch(searchMovies(searchText));
+            dispatch(searchForApprovedPosts(searchText));
         }  
         if (value === 1) {
-            // dispatch(searchMusic(searchText));
+            dispatch(searchForPendingPosts(searchText));
         }  
     };
 
     const debouncedSearch = debounce(handleSearch, 1000);
     
-    const handleLocationChange = (searchText: string) => {
+    const handleSearchPosts = (searchText: string) => {
         setSearchText(searchText);
         debouncedSearch(searchText);
     };
@@ -123,7 +133,7 @@ const BlogManagement: React.FC<{}> = () => {
         setValue(newValue);
     };
 
-    const handleOpenAddMovieModal = (): void => {
+    const handleOpenAddCategoryModal = (): void => {
         addCategoryModal.current?.openModal()
     };
 
@@ -134,14 +144,10 @@ const BlogManagement: React.FC<{}> = () => {
         }
     };
 
-    // const handleEditMusic = (music: Music) => {
-    //     dispatch(setMusic(music));
-    //     handleOpenAddMusicModal();
-    // };
-
     return (
         <>
             {loading && <Loading />}
+            <AddCategoryModal ref={addCategoryModal} />
             <Box component="main">
                 <Typography variant="h5" className={classes.title}>Downloads Management</Typography>
                 <Stack 
@@ -164,13 +170,13 @@ const BlogManagement: React.FC<{}> = () => {
                         </Tabs>
                     </Box>
                     <Stack direction="row" spacing={5} alignItems="center" alignSelf="flex-start">
-                        <SearchBox searchHandler={handleLocationChange} />
+                        <SearchBox searchHandler={handleSearchPosts} />
                         <Button
                             variant="outlined"
                             color="secondary"
                             size="large"
                             sx={{ color: SECONDARY_COLOR }}
-                            onClick={handleOpenAddMovieModal}
+                            onClick={handleOpenAddCategoryModal}
                             startIcon={<Plus />}
                         >
                             Add Blog Category
