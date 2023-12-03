@@ -115,5 +115,16 @@ PostSchema.pre('save', async function(next) {
     next();
 });
 
+PostSchema.index(
+    { title: 'text', body: 'text' },
+    {
+        name: 'PostIndex',
+        weights: {
+            title: 5,
+            body: 3
+        }
+    }
+);
+
 
 export default model<Post>('Post', PostSchema);

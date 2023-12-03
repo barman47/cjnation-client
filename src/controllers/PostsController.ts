@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import mongoose from 'mongoose';
 
+import CommentModel from '../models/Comment';
+import LikesModel from '../models/Like';
 import PostModel from '../models/Post';
 import { authorize, protect } from '../utils/auth';
 import { returnError } from '../utils/returnError';
@@ -238,6 +240,97 @@ export class PostsController {
             });
         } catch (err) {
             return returnError(err, res, 500, 'Failed to get pending posts');
+        }
+    }
+
+    @use(authorize(Role.ADMIN))
+    @use(protect)
+    @get('/approved/posts')
+    async getPublishedPosts(_req: Request, res: Response) {
+        try {
+            const posts = await PostModel.find({ status: PostStatus.APPROVED })
+                .populate({ path: 'category', select: 'name' })
+                .populate({ path: 'author', select: 'name avatar' })
+                .sort({ createdAt: 'desc' })
+                .exec();
+            
+            return sendServerResponse(res, {
+                success: true,
+                statusCode: 200,
+                data: posts,
+                count: posts.length
+            });
+        } catch (err) {
+            return returnError(err, res, 500, 'Failed to get approved posts');
+        }
+    }
+
+    @use(protect)
+    @get('/pending/search')
+    async searchForPendingPosts(req: Request, res: Response) {
+        try {
+            if (req.query.text?.toString().trim() === '') {
+                const posts = await PostModel.find({ status: PostStatus.PUBLISHED })
+                    .populate({ path: 'category', select: 'name' })
+                    .populate({ path: 'author', select: 'name avatar' })
+                    .sort({ createdAt: 'desc' })
+                    .exec();
+
+                return sendServerResponse(res, {
+                    statusCode: 200,
+                    success: true,
+                    data: posts,
+                    count: posts.length
+                });
+            }
+
+            const posts = await PostModel.find({ $text: { $search: req.query.text?.toString()! }, status: PostStatus.PUBLISHED })
+                .populate({ path: 'category', select: 'name' })
+                .populate({ path: 'author', select: 'name avatar' })
+                .exec();
+
+            return sendServerResponse(res, {
+                statusCode: 200,
+                success: true,
+                data: posts,
+                count: posts.length
+            });
+        } catch (err) {
+            return returnError(err, res, 500, 'Failed to find pendings posts');
+        }
+    }
+
+    @get('/approved/search')
+    async searchForApprovedPosts(req: Request, res: Response) {
+        try {
+            if (req.query.text?.toString().trim() === '') {
+                const posts = await PostModel.find({ status: PostStatus.APPROVED })
+                    .populate({ path: 'category', select: 'name' })
+                    .populate({ path: 'author', select: 'name avatar' })
+                    .sort({ createdAt: 'desc' })
+                    .exec();
+
+                return sendServerResponse(res, {
+                    statusCode: 200,
+                    success: true,
+                    data: posts,
+                    count: posts.length
+                });
+            }
+
+            const posts = await PostModel.find({ $text: { $search: req.query.text?.toString()! }, status: PostStatus.APPROVED })
+                .populate({ path: 'category', select: 'name' })
+                .populate({ path: 'author', select: 'name avatar' })
+                .exec();
+
+            return sendServerResponse(res, {
+                statusCode: 200,
+                success: true,
+                data: posts,
+                count: posts.length
+            });
+        } catch (err) {
+            return returnError(err, res, 500, 'Failed to find posts');
         }
     }
 
@@ -500,7 +593,12 @@ export class PostsController {
             if (post.mediaName) {
                 await deleteFile(post.mediaName);
             }
-            await PostModel.findOneAndDelete({ _id: req.params.id });
+
+            await Promise.all([
+                PostModel.findOneAndDelete({ _id: req.params.id }),
+                CommentModel.deleteMany({ post: req.params.id }),
+                LikesModel.deleteMany({ post: req.params.id })
+            ]);
 
             return sendServerResponse(res, {
                 success: true,

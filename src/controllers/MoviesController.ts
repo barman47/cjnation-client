@@ -74,7 +74,7 @@ export class MovieController {
     async searchMovie(req: Request, res: Response) {
         try {
            
-            if (!req.query.text?.toString()) {
+            if (req.query.text?.toString().trim() === '') {
                 const movies = await MovieModel.find()
                     .populate({ path: 'genre', select: 'name' })
                     .sort({ createdAt: 'desc' })
@@ -90,7 +90,6 @@ export class MovieController {
 
             const movies = await MovieModel.find({ $text: { $search: req.query.text?.toString()! } })
                 .populate({ path: 'genre', select: 'name' })
-                .sort({ createdAt: 'desc' })
                 .exec();
 
             return sendServerResponse(res, {

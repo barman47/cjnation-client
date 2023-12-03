@@ -87,7 +87,7 @@ export class MusicController {
     @get('/search')
     async searchMusic(req: Request, res: Response) {
         try {
-            if (!req.query.text?.toString()) {
+            if (req.query.text?.toString().trim() === '') {
                 const musics = await MusicModel.find()
                     .populate({ path: 'genre', select: 'name' })
                     .sort({ createdAt: 'desc' })
@@ -101,7 +101,9 @@ export class MusicController {
                 });
             }
 
-            const musics = await MusicModel.find({ $text: { $search: req.query.text?.toString()! } });
+            const musics = await MusicModel.find({ $text: { $search: req.query.text?.toString()! } })
+                .populate({ path: 'genre', select: 'name' })
+                .exec();
 
             return sendServerResponse(res, {
                 statusCode: 200,

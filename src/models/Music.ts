@@ -66,7 +66,7 @@ const MusicSchema = new Schema<Music>({
 MusicSchema.index(
     { title: 'text', artiste: 'text' },
     {
-        name: 'TextIndex',
+        name: 'MusicIndex',
         weights: {
             title: 5,
             artiste: 3

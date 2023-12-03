@@ -52,7 +52,7 @@ const MovieSchema = new Schema<Movie>({
 MovieSchema.index(
     { title: 'text' },
     {
-        name: 'TextIndex',
+        name: 'MovieIndex',
         weights: {
             title: 5
         }
