@@ -20,7 +20,6 @@ import { LIGHT_GREY, SECONDARY_COLOR } from '@/app/theme';
 import { ModalRef } from '@/utils/constants';
 import { setToast } from '@/redux/features/appSlice';
 import { AppDispatch } from '@/redux/store';
-import { useQueryState } from 'next-usequerystate';
 import debounce from '@/utils/debounce';
 import { clearError, deletePost, getPendingPosts, getApprovedPosts, selectPostErrors, selectPostMessage, selectPosts, setPostMessage, setPosts, searchForApprovedPosts, searchForPendingPosts } from '@/redux/features/postsSlice';
 import { Plus } from 'mdi-material-ui';
@@ -61,7 +60,7 @@ const BlogManagement: React.FC<{}> = () => {
     const posts = useSelector(selectPosts);
     const msg = useSelector(selectPostMessage);
 
-    const [searchText, setSearchText] = useQueryState('text');
+    const [searchText, setSearchText] = React.useState('');
 
     const [value, setValue] = React.useState(0);
     const [loading, setLoading] = React.useState(false);
@@ -72,9 +71,8 @@ const BlogManagement: React.FC<{}> = () => {
 
     React.useEffect(() => {
         if (searchText) {
-            handleSearchPosts(searchText);
+            handleSearch(searchText);
         }
-
         // eslint-disable-next-line
     }, []);
 
@@ -113,7 +111,6 @@ const BlogManagement: React.FC<{}> = () => {
     }, [postErrors, dispatch]);
 
     const handleSearch = (searchText: string) => {
-        console.log(searchText)
         if (value === 0) {
             dispatch(searchForApprovedPosts(searchText));
         }  
@@ -126,6 +123,14 @@ const BlogManagement: React.FC<{}> = () => {
     
     const handleSearchPosts = (searchText: string) => {
         setSearchText(searchText);
+        const url = new URL(window.location.href);
+
+        if (searchText) {
+            url.searchParams.set('text', searchText);
+        } else {
+            url.searchParams.delete('text');
+        }
+        window.history.pushState({}, '', url.toString());
         debouncedSearch(searchText);
     };
 
