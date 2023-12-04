@@ -2,7 +2,6 @@ import { Metadata } from 'next';
 
 import Home from './(home)';
 import { PAGE_TITLE } from '@/utils/constants';
-import Categories from '@/components/common/Categories';
 
 export const metadata: Metadata = {
     title: `Home | ${PAGE_TITLE}`
@@ -53,10 +52,7 @@ const HomePage: React.FC<{}> = async () => {
 	const featuredPostsResponse = await getFeaturedPosts();
 
 	return (
-		<>
-			<Categories categories={categoriesResponse.data} />
-			<Home posts={postsResponse.data} featuredPosts={featuredPostsResponse.data} />
-		</>
+		<Home categories={categoriesResponse.data} posts={postsResponse.data} featuredPosts={featuredPostsResponse.data} />
 	);
 }
 

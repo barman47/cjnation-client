@@ -1,18 +1,16 @@
 'use client';
 
 import { useEffect } from 'react';
-import { AppDispatch } from '@/redux/store';
 import { 
     Chip,
     Stack,
     Theme
  } from '@mui/material';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { makeStyles } from 'tss-react/mui';
 
 import { Category } from '@/interfaces';
-import { selectCategory, setCategory } from '@/redux/features/categoriesSlice';
-import { getPostsByCategory } from '@/redux/features/postsSlice';
+import { selectCategory } from '@/redux/features/categoriesSlice';
 import { capitalize } from '@/utils/capitalize';
 import { useSearchParams } from 'next/navigation';
 
@@ -28,35 +26,43 @@ const useStyles = makeStyles()((theme: Theme) => ({
 
 interface Props {
     categories: Category[];
+    searchParamName: string;
+    setCategory: (category: Category) => void;
+    getFunction: (categoryId: string) => void;
 }
 
-const Categories: React.FC<Props> = ({ categories }) => {
+const Categories: React.FC<Props> = ({ categories, getFunction, setCategory, searchParamName }) => {
     const { classes } = useStyles();
-    const dispatch: AppDispatch = useDispatch();
     const searchParams = useSearchParams();
     
     const selectedCategory = useSelector(selectCategory);
 
     useEffect(() => {
-        const categoryType = searchParams.get('category');
+        const categoryType = searchParams.get(searchParamName);
         // Get the data when the user opens the page with existing search parameter
-        if (categoryType) {
-            const category = categories.find((item: Category) => item.name.toLowerCase() === categoryType.toLowerCase())!;
-            dispatch(setCategory(category));
-            dispatch(getPostsByCategory(category._id!));
-        } else {
-            // Select the first category since none exists in the url
-            const category = categories[0];
-            handleSetCategory(category);
+        if (categories.length) { // this is to ensure it runs only when there are categories. Useful if the page is refreshed
+            if (categoryType) {
+                const category = categories.find((item: Category) => item.name.toLowerCase() === categoryType.toLowerCase())!;
+                setCategory(category);
+                getFunction(category._id!);
+            } else {
+                // Select the first category since none exists in the url
+                const category = categories[0];
+                handleSetCategory(category);
+            }
         }
         // eslint-disable-next-line
-    }, []);
+    }, [categories]);
 
     const handleSetCategory = (category: Category): void => {
-        window.history.pushState({}, '', `?category=${category.name.toLowerCase()}`);
-        dispatch(setCategory(category));
-        dispatch(getPostsByCategory(category._id!));
+        window.history.pushState({}, '', `?${searchParamName}=${category.name.toLowerCase()}`);
+        setCategory(category);
+        getFunction(category._id!);
     };
+
+    if (!categories.length) {
+        return null;
+    }
 
     return (
         <Stack direction="row" spacing={1} className={classes.root}>
