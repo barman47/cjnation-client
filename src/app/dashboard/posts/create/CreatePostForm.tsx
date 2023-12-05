@@ -25,7 +25,7 @@ import { Categories, ModalRef, PostStatus, TITLE_LENGTH } from '@/utils/constant
 import { PostData, validateCreateDraft, validateCreatePost } from '@/utils/validation/posts';
 import { AppDispatch } from '@/redux/store';
 import { setToast } from '@/redux/features/appSlice';
-import { selectUser } from '@/redux/features/authSlice';
+import { selectIsUserAuthenticated, selectUser } from '@/redux/features/authSlice';
 import { LIGHT_GREY } from '@/app/theme';
 import { clearError, createDraft, createPost, editPost, removePostImage, saveDraft, selectIsPostLoading, selectPost, selectPostErrors, selectPostMessage, setPostMessage } from '@/redux/features/postsSlice';
 import { clearCategoriesErrors, getCategoriesByType, selectCategoires, selectCategoryErrors } from '@/redux/features/categoriesSlice';
@@ -33,6 +33,7 @@ import { Category } from '@/interfaces';
 import { getCategoryId } from '@/utils/getCategoryId';
 import PostSuccessModal from '@/components/common/PostSuccessModal';
 import { capitalize } from '@/utils/capitalize';
+import AccountVerificationModal from '@/components/common/AccountVerificationModal';
 
 const useStyles = makeStyles()((theme) => ({
     imageContainer: {
@@ -66,9 +67,9 @@ const CreatePostForm: React.FC<Props> = ({ edit }) => {
     const loading = useSelector(selectIsPostLoading);
     const msg = useSelector(selectPostMessage);
     const user = useSelector(selectUser);
+    const isAuthenticated = useSelector(selectIsUserAuthenticated);
     const post = useSelector(selectPost);
     const postErrors = useSelector(selectPostErrors);
-    
     const categories = useSelector(selectCategoires);
     const categoriesError = useSelector(selectCategoryErrors);
 
@@ -79,8 +80,15 @@ const CreatePostForm: React.FC<Props> = ({ edit }) => {
     const [image, setImage] = React.useState<File>('' as unknown as File);
     const [errors, setErrors] = React.useState({} as PostData);
     
+    const accountVerificationModalRef = React.useRef<ModalRef | null>(null);
     const fileUploadRef = React.useRef<HTMLInputElement>(null);
     const postSuccessModalRef = React.useRef<ModalRef | null>(null);
+
+    React.useEffect(() => {
+        if (isAuthenticated && !user.emailVerified) {
+            accountVerificationModalRef.current?.openModal();
+        }
+    }, [dispatch, isAuthenticated, user]);
 
     React.useEffect(() => {
         if (edit && !_.isEmpty(post)) {
@@ -177,6 +185,10 @@ const CreatePostForm: React.FC<Props> = ({ edit }) => {
             return setErrors({ ...errors});
         }
 
+        if (!user.emailVerified) {
+            return accountVerificationModalRef.current?.openModal();
+        }
+
         const data = new FormData();
         data.append('title', title);
         data.append('body', body);
@@ -211,6 +223,10 @@ const CreatePostForm: React.FC<Props> = ({ edit }) => {
             return setErrors({ ...errors});
         }
 
+        if (!user.emailVerified) {
+            return accountVerificationModalRef.current?.openModal();
+        }
+
         const data = new FormData();
         data.append('title', title);
         data.append('body', body);
@@ -236,6 +252,7 @@ const CreatePostForm: React.FC<Props> = ({ edit }) => {
     return (
         <>
             <PostSuccessModal ref={postSuccessModalRef} />
+            <AccountVerificationModal ref={accountVerificationModalRef} />
             <form>
                 <Stack direction="column" spacing={3}>
                     <FormControl>

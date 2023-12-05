@@ -13,6 +13,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { selectCategory, setCategory } from '@/redux/features/categoriesSlice';
 import { getPostsByCategory } from '@/redux/features/postsSlice';
 import { setQueryParams } from '@/utils/searchQueryParams';
+import AccountVerificationModal from '@/components/common/AccountVerificationModal';
+import { ModalRef } from '@/utils/constants';
+import { selectIsUserAuthenticated, selectUser } from '@/redux/features/authSlice';
+import { selectHasSeenEmailVerificationModal, toggleHasSeenEmailVerificationModal } from '@/redux/features/appSlice';
 
 interface Props {
     categories: Category[];
@@ -22,7 +26,20 @@ interface Props {
 
 const Home:React.FC<Props> = ({ categories, posts, featuredPosts }) => {
     const dispatch: AppDispatch = useDispatch();
+    
     const category = useSelector(selectCategory);
+    const user = useSelector(selectUser);
+    const isAuthenticated = useSelector(selectIsUserAuthenticated);
+    const hasSeenEmailVerificationModal = useSelector(selectHasSeenEmailVerificationModal);
+    
+    const accountVerificationModalRef = React.useRef<ModalRef | null>(null);
+
+    React.useEffect(() => {
+        if (isAuthenticated && !user.emailVerified && !hasSeenEmailVerificationModal) {
+            accountVerificationModalRef.current?.openModal();
+            dispatch(toggleHasSeenEmailVerificationModal());
+        }
+    }, [dispatch, isAuthenticated, hasSeenEmailVerificationModal, user]);
 
     React.useEffect(() => {
         if (!_.isEmpty(category)) {
@@ -32,6 +49,7 @@ const Home:React.FC<Props> = ({ categories, posts, featuredPosts }) => {
 
     return (
         <>
+            <AccountVerificationModal ref={accountVerificationModalRef} />
             <Categories 
                 categories={categories}
                 searchParamName="category"

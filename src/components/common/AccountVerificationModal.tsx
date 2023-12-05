@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     Box,
+    Button,
     IconButton, 
     Modal,
     Stack,
@@ -16,12 +17,12 @@ import _ from 'lodash';
 
 import { OFF_BLACK, WHITE } from '@/app/theme';
 import { ModalRef } from '@/utils/constants';
-import { Close } from 'mdi-material-ui';
+import { Close, EmailOutline } from 'mdi-material-ui';
 
 import { setToast } from '@/redux/features/appSlice';
 import { AppDispatch } from '@/redux/store';
 import { LoginData } from '@/utils/validation/auth';
-import { clearError, selectAuthError, selectAuthMessage, selectIsAuthLoading, setAuthMessage } from '@/redux/features/authSlice';
+import { clearError, getEmailVerificationLink, selectAuthError, selectAuthMessage, selectIsAuthLoading, selectUser, setAuthMessage } from '@/redux/features/authSlice';
 
 import mailImage from '../../../public/assets/mail-sent.svg';
 
@@ -60,6 +61,7 @@ const AccountVerificationModal: React.FC<Props> = React.forwardRef<ModalRef, Pro
     const { classes } = useStyles();
     const dispatch: AppDispatch = useDispatch();
 
+    const user = useSelector(selectUser);
     const authError = useSelector(selectAuthError);
     const loading = useSelector(selectIsAuthLoading);
     const msg = useSelector(selectAuthMessage);
@@ -109,9 +111,8 @@ const AccountVerificationModal: React.FC<Props> = React.forwardRef<ModalRef, Pro
                 autoHideDuration: 6000
             }));
             dispatch(setAuthMessage(null));
-            handleClose();
         }
-    }, [dispatch, handleClose, msg]);
+    }, [dispatch, msg]);
   
     return (
         <Modal
@@ -129,14 +130,40 @@ const AccountVerificationModal: React.FC<Props> = React.forwardRef<ModalRef, Pro
                     <Close />
                 </IconButton>
                 <Stack direction="column" spacing={2}>
-                    <Typography variant="h5" sx={{ fontWeight: 600 }}>Verify Your Email</Typography>
-                    <Image 
-                        src={mailImage}
-                        width={200}
-                        height={200}
-                        alt="mail image"
-                    />
-                    
+                    <Typography variant="h5" sx={{ fontWeight: 600 }}>Check your Email</Typography>
+                    <Typography variant="body1">We sent a link to {user.email} to verify your email</Typography>
+                    <Box alignSelf="center">
+                        <Image 
+                            src={mailImage}
+                            width={200}
+                            height={200}
+                            alt="mail image"
+                        />
+                    </Box>
+                    <Typography variant="body1">If you don&#39;t see it within a few minutes, be sure to check your spam folders.</Typography>
+                    <Button 
+                        LinkComponent="a"
+                        href="mailto:"
+                        variant="outlined"
+                        color="primary"
+                        size="large"
+                        startIcon={<EmailOutline />}
+                        disabled={loading}
+                    >
+                        Open Email
+                    </Button>
+                    <Stack direction="row" alignItems="center">
+                        <Typography variant="body1">Can&#39;t find the email?</Typography>
+                        <Button
+                            color="primary"
+                            variant="text"
+                            size="large"
+                            onClick={() => dispatch(getEmailVerificationLink())}
+                            disabled={loading}
+                        >
+                            {loading ? 'Sendind Link . . .' : 'Resend'}
+                        </Button>
+                    </Stack>
                 </Stack>
             </Box>
         </Modal>

@@ -10,6 +10,7 @@ interface Toast {
 
 interface AppState {
     drawerOpen: boolean;
+    hasSeenEmailVerificationModal: boolean;
     toast: Toast;
 };
 
@@ -22,6 +23,7 @@ const initialToast: Toast = {
 
 const initialState: AppState = {
     drawerOpen: true,
+    hasSeenEmailVerificationModal: false,
     toast: initialToast
 };
 
@@ -29,6 +31,10 @@ export const app = createSlice({
     name: 'app',
     initialState,
     reducers: {
+        toggleHasSeenEmailVerificationModal: (state) => {
+            state.hasSeenEmailVerificationModal = !state.hasSeenEmailVerificationModal;
+        },
+
         closeDrawer: (state) => {
             state.drawerOpen = false;
         },
@@ -58,9 +64,11 @@ export const {
     clearToast,
     closeDrawer,
     setToast,
-    toggleDrawer
+    toggleDrawer,
+    toggleHasSeenEmailVerificationModal
 } = app.actions;
 
 export const selectIsDrawerOpen = (state: RootState) => state.app.drawerOpen;
+export const selectHasSeenEmailVerificationModal = (state: RootState) => state.app.hasSeenEmailVerificationModal;
 
 export default app.reducer;

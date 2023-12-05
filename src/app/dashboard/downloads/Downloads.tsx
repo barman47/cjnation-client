@@ -19,15 +19,14 @@ import { LIGHT_GREY } from '@/app/theme';
 import { setToast } from '@/redux/features/appSlice';
 import { AppDispatch } from '@/redux/store';
 import debounce from '@/utils/debounce';
-import { clearError, selectPostErrors, selectPostMessage, setPostMessage } from '@/redux/features/postsSlice';
 import Loading from '@/components/common/Loading';
 import Movies from './Movies';
-import { getMoviesByGenre, selectMovies } from '@/redux/features/moviesSlice';
+import { clearMovieErrors, getMoviesByGenre, searchMovies, selectMovieErrors, selectMovies } from '@/redux/features/moviesSlice';
 import Categories from '@/components/common/Categories';
 import { Categories as CategoryTypes } from '@/utils/constants';
 import { getCategoriesByType, selectCategoires, selectCategory, setCategory } from '@/redux/features/categoriesSlice';
 import { Category } from '@/interfaces';
-import { getMusicsByGenre, selectMusics } from '@/redux/features/musicSlice';
+import { clearMusicErrors, getMusicsByGenre, searchMusic, selectMusicErrors, selectMusics } from '@/redux/features/musicSlice';
 import Musics from './Musics';
 import { setQueryParams } from '@/utils/searchQueryParams';
 
@@ -65,27 +64,24 @@ const Downloads: React.FC<{}> = () => {
     const { classes } = useStyles();
     const dispatch: AppDispatch = useDispatch();
 
+    const musicErrors = useSelector(selectMusicErrors);
+    const movieErrors = useSelector(selectMovieErrors);
+
     const category = useSelector(selectCategory);
     const categories = useSelector(selectCategoires);
     const movies = useSelector(selectMovies);
     const musics = useSelector(selectMusics);
-    const msg = useSelector(selectPostMessage);
 
-    const [searchText, setSearchText] = React.useState('');
-    const [previousGenre, setPreviousGenre] = React.useState<{ tab: string; genre: string; }>({ tab: '', genre: '' });
     const [value, setValue] = React.useState<number | null>(null);
     const [loading, setLoading] = React.useState(false);
 
-
-    const postErrors = useSelector(selectPostErrors);
-
     React.useEffect(() => {
         const searchParams = new URLSearchParams(window.location.search);
-        const tab = searchParams.get(TAB);
+        const tab = searchParams.get(TAB); // set the tab if the value is in the url on page load. Useful for page refresh
         if (!tab) {
             setValue(0);
         } else if (tab === MOVIES) {
-                setValue(0);
+            setValue(0);
         } else {
             setValue(1);
         }
@@ -102,42 +98,42 @@ const Downloads: React.FC<{}> = () => {
         }
     }, [category]);
 
-    React.useEffect(() => {
-        if (msg) {
-            setLoading(false);
-            dispatch(setToast({
-                type: 'success',
-                message: msg
-            }));
-            dispatch(setPostMessage(null));
-        }
-    }, [dispatch, msg]);
-
     // Handle Post API error response
     React.useEffect(() => {
-        if (!_.isEmpty(postErrors)) {
+        if (!_.isEmpty(movieErrors)) {
             setLoading(false);
             dispatch(setToast({
                 type: 'error',
-                message: postErrors.msg!
+                message: movieErrors.msg!
             }));
-            dispatch(clearError());
+            dispatch(clearMovieErrors());
         }
-    }, [postErrors, dispatch]);
+    }, [movieErrors, dispatch]);
+
+    // Handle Post API error response
+    React.useEffect(() => {
+        if (!_.isEmpty(musicErrors)) {
+            setLoading(false);
+            dispatch(setToast({
+                type: 'error',
+                message: musicErrors.msg!
+            }));
+            dispatch(clearMusicErrors());
+        }
+    }, [musicErrors, dispatch]);
 
     const handleSearch = (searchText: string) => {
-        // if (value === 0) {
-        //     dispatch(searchForApprovedPosts(searchText));
-        // }  
-        // if (value === 1) {
-        //     dispatch(searchForPendingPosts(searchText));
-        // }  
+        if (value === 0) {
+            dispatch(searchMovies(searchText));
+        }  
+        if (value === 1) {
+            dispatch(searchMusic(searchText));
+        }  
     };
 
     const debouncedSearch = debounce(handleSearch, 1000);
     
     const handleDownloadSearch = (searchText: string) => {
-        setSearchText(searchText);
         const url = new URL(window.location.href);
 
         if (searchText) {
@@ -159,27 +155,12 @@ const Downloads: React.FC<{}> = () => {
             setQueryParams(TAB, MUSIC);
             dispatch(getCategoriesByType(CategoryTypes.MUSIC));
         }
-        const searchParams = new URLSearchParams(window.location.search);
 
-        // setPreviousGenre(prev => {
-        //     if (prev) {
-        //         setQueryParams(GENRE, prev);
-        //     }
-        //     return searchParams.get(GENRE) || '';
-        // });
         setValue((prevValue) => {
             if (prevValue === 0) {
-                // if (previousGenre.tab === MOVIES) {
-                //     setQueryParams(GENRE, previousGenre.genre);    
-                // }
                 setQueryParams(TAB, MOVIES);
-                // setPreviousGenre(MOVIES);
             } else {
-                // if (previousGenre.tab === MUSIC) {
-                //     setQueryParams(GENRE, previousGenre.genre);    
-                // }
                 setQueryParams(TAB, MUSIC);
-                // setPreviousGenre(MUSIC);
             }
             return newValue;
         });
