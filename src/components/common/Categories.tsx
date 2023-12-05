@@ -42,9 +42,11 @@ const Categories: React.FC<Props> = ({ categories, getFunction, setCategory, sea
         // Get the data when the user opens the page with existing search parameter
         if (categories.length) { // this is to ensure it runs only when there are categories. Useful if the page is refreshed
             if (categoryType) {
-                const category = categories.find((item: Category) => item.name.toLowerCase() === categoryType.toLowerCase())!;
-                setCategory(category);
-                getFunction(category._id!);
+                const category = categories.find((item: Category) => item.name.toLowerCase() === categoryType.toLowerCase());
+                if (category) {
+                    setCategory(category);
+                    getFunction(category._id!);
+                }
             } else {
                 // Select the first category since none exists in the url
                 const category = categories[0];
@@ -55,9 +57,21 @@ const Categories: React.FC<Props> = ({ categories, getFunction, setCategory, sea
     }, [categories]);
 
     const handleSetCategory = (category: Category): void => {
-        window.history.pushState({}, '', `?${searchParamName}=${category.name.toLowerCase()}`);
+        // const currentSearchParams = new URLSearchParams(window.location.search);
+        // currentSearchParams.set(searchParamName, category.name.toLowerCase());
+        
+        // // Build the new URL with the updated query parameters
+        // const newUrl = `${window.location.pathname}?${currentSearchParams.toString()}`;
+        
+        // // Update the URL without replacing the entire state
+        // window.history.pushState({}, '', newUrl);
+
         setCategory(category);
         getFunction(category._id!);
+
+        // window.history.pushState({}, '', `?${searchParamName}=${category.name.toLowerCase()}`);
+        // setCategory(category);
+        // getFunction(category._id!);
     };
 
     if (!categories.length) {

@@ -1,15 +1,18 @@
 'use client';
 
+import * as React from 'react';
 import { Divider, Grid } from '@mui/material';
+import _ from 'lodash';
 
 import FeaturedPost from './FeaturedPost';
 import { Category, Post as PostData } from '@/interfaces';
 import PostList from './PostList';
 import Categories from '@/components/common/Categories';
 import { AppDispatch } from '@/redux/store';
-import { useDispatch } from 'react-redux';
-import { setCategory } from '@/redux/features/categoriesSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { selectCategory, setCategory } from '@/redux/features/categoriesSlice';
 import { getPostsByCategory } from '@/redux/features/postsSlice';
+import { setQueryParams } from '@/utils/searchQueryParams';
 
 interface Props {
     categories: Category[];
@@ -19,6 +22,13 @@ interface Props {
 
 const Home:React.FC<Props> = ({ categories, posts, featuredPosts }) => {
     const dispatch: AppDispatch = useDispatch();
+    const category = useSelector(selectCategory);
+
+    React.useEffect(() => {
+        if (!_.isEmpty(category)) {
+            setQueryParams('category', category.name.toLowerCase());
+        }
+    }, [category]);
 
     return (
         <>

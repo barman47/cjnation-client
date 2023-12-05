@@ -19,15 +19,17 @@ import { LIGHT_GREY } from '@/app/theme';
 import { setToast } from '@/redux/features/appSlice';
 import { AppDispatch } from '@/redux/store';
 import debounce from '@/utils/debounce';
-import { clearError, selectPostErrors, selectPostMessage, setPostMessage, searchForApprovedPosts, searchForPendingPosts } from '@/redux/features/postsSlice';
+import { clearError, selectPostErrors, selectPostMessage, setPostMessage } from '@/redux/features/postsSlice';
 import Loading from '@/components/common/Loading';
 import Movies from './Movies';
 import { getMoviesByGenre, selectMovies } from '@/redux/features/moviesSlice';
 import Categories from '@/components/common/Categories';
 import { Categories as CategoryTypes } from '@/utils/constants';
-import { getCategoriesByType, selectCategoires, setCategory } from '@/redux/features/categoriesSlice';
+import { getCategoriesByType, selectCategoires, selectCategory, setCategory } from '@/redux/features/categoriesSlice';
 import { Category } from '@/interfaces';
-import { getMusicsByGenre } from '@/redux/features/musicSlice';
+import { getMusicsByGenre, selectMusics } from '@/redux/features/musicSlice';
+import Musics from './Musics';
+import { setQueryParams } from '@/utils/searchQueryParams';
 
 function a11yProps(index: number) {
     return {
@@ -54,42 +56,51 @@ const useStyles = makeStyles()((theme) => ({
     }
 }));
 
+const MOVIES = 'movies';
+const MUSIC = 'music';
+const TAB = 'tab';
+const GENRE = 'genre';
+
 const Downloads: React.FC<{}> = () => {
     const { classes } = useStyles();
     const dispatch: AppDispatch = useDispatch();
 
+    const category = useSelector(selectCategory);
     const categories = useSelector(selectCategoires);
     const movies = useSelector(selectMovies);
+    const musics = useSelector(selectMusics);
     const msg = useSelector(selectPostMessage);
 
     const [searchText, setSearchText] = React.useState('');
-
-    const [value, setValue] = React.useState(0);
+    const [previousGenre, setPreviousGenre] = React.useState<{ tab: string; genre: string; }>({ tab: '', genre: '' });
+    const [value, setValue] = React.useState<number | null>(null);
     const [loading, setLoading] = React.useState(false);
 
 
     const postErrors = useSelector(selectPostErrors);
 
     React.useEffect(() => {
-        if (searchText) {
-            handleSearch(searchText);
+        const searchParams = new URLSearchParams(window.location.search);
+        const tab = searchParams.get(TAB);
+        if (!tab) {
+            setValue(0);
+        } else if (tab === MOVIES) {
+                setValue(0);
+        } else {
+            setValue(1);
         }
-        // if (categories.length === 0) {
-        //     dispatch(getCategoriesByType());
-        // }
+        // setQueryParams(value);
         // eslint-disable-next-line
     }, []);
 
-    // Get categories depending on whether music or movies tab is selected
-    React.useEffect(() => {
-        if (value === 0) {
-            dispatch(getCategoriesByType(CategoryTypes.MOVIE));
-        }
+ 
 
-        if (value === 1) {
-            dispatch(getCategoriesByType(CategoryTypes.MUSIC));
+    // set the category in search params when it changes
+    React.useEffect(() => {
+        if (!_.isEmpty(category)) {
+            setQueryParams(GENRE, category.name.toLowerCase());
         }
-    }, [dispatch, value]);
+    }, [category]);
 
     React.useEffect(() => {
         if (msg) {
@@ -115,17 +126,17 @@ const Downloads: React.FC<{}> = () => {
     }, [postErrors, dispatch]);
 
     const handleSearch = (searchText: string) => {
-        if (value === 0) {
-            dispatch(searchForApprovedPosts(searchText));
-        }  
-        if (value === 1) {
-            dispatch(searchForPendingPosts(searchText));
-        }  
+        // if (value === 0) {
+        //     dispatch(searchForApprovedPosts(searchText));
+        // }  
+        // if (value === 1) {
+        //     dispatch(searchForPendingPosts(searchText));
+        // }  
     };
 
     const debouncedSearch = debounce(handleSearch, 1000);
     
-    const handleSearchPosts = (searchText: string) => {
+    const handleDownloadSearch = (searchText: string) => {
         setSearchText(searchText);
         const url = new URL(window.location.href);
 
@@ -139,7 +150,39 @@ const Downloads: React.FC<{}> = () => {
     };
 
     const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
-        setValue(newValue);
+        if (newValue === 0) {
+            setQueryParams(TAB, MOVIES);
+            dispatch(getCategoriesByType(CategoryTypes.MOVIE));
+        }
+
+        if (newValue === 1) {
+            setQueryParams(TAB, MUSIC);
+            dispatch(getCategoriesByType(CategoryTypes.MUSIC));
+        }
+        const searchParams = new URLSearchParams(window.location.search);
+
+        // setPreviousGenre(prev => {
+        //     if (prev) {
+        //         setQueryParams(GENRE, prev);
+        //     }
+        //     return searchParams.get(GENRE) || '';
+        // });
+        setValue((prevValue) => {
+            if (prevValue === 0) {
+                // if (previousGenre.tab === MOVIES) {
+                //     setQueryParams(GENRE, previousGenre.genre);    
+                // }
+                setQueryParams(TAB, MOVIES);
+                // setPreviousGenre(MOVIES);
+            } else {
+                // if (previousGenre.tab === MUSIC) {
+                //     setQueryParams(GENRE, previousGenre.genre);    
+                // }
+                setQueryParams(TAB, MUSIC);
+                // setPreviousGenre(MUSIC);
+            }
+            return newValue;
+        });
     };
 
     const handleGetData = (categoryId: string): void => {
@@ -176,7 +219,7 @@ const Downloads: React.FC<{}> = () => {
                             <Tab sx={{ textTransform: 'none' }} label="Music" disableRipple disableFocusRipple {...a11yProps(1)} />
                         </Tabs>
                     </Box>
-                    <SearchBox searchHandler={handleSearchPosts} />
+                    <SearchBox searchHandler={handleDownloadSearch} />
                 </Stack>
                 <br />
                 <Categories 
@@ -187,11 +230,11 @@ const Downloads: React.FC<{}> = () => {
                     }}
                     getFunction={handleGetData}
                 />
-                <CustomTabPanel value={value} index={0}>
+                <CustomTabPanel value={value as number} index={0}>
                     <Movies movies={movies} />
                 </CustomTabPanel>
-                <CustomTabPanel value={value} index={1}>
-                    {/* <PendingPosts /> */}
+                <CustomTabPanel value={value as number} index={1}>
+                    <Musics musics={musics} />
                 </CustomTabPanel>
             </Box>
         </>
