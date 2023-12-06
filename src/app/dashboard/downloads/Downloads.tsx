@@ -24,7 +24,7 @@ import Movies from './Movies';
 import { clearMovieErrors, getMoviesByGenre, searchMovies, selectMovieErrors, selectMovies } from '@/redux/features/moviesSlice';
 import Categories from '@/components/common/Categories';
 import { Categories as CategoryTypes } from '@/utils/constants';
-import { getCategoriesByType, selectCategoires, selectCategory, setCategory } from '@/redux/features/categoriesSlice';
+import { getCategoriesByType, selectCategoires, selectCategory, setCategories, setCategory } from '@/redux/features/categoriesSlice';
 import { Category } from '@/interfaces';
 import { clearMusicErrors, getMusicsByGenre, searchMusic, selectMusicErrors, selectMusics } from '@/redux/features/musicSlice';
 import Musics from './Musics';
@@ -76,19 +76,22 @@ const Downloads: React.FC<{}> = () => {
     const [loading, setLoading] = React.useState(false);
 
     React.useEffect(() => {
+        dispatch(setCategories([]));
         const searchParams = new URLSearchParams(window.location.search);
         const tab = searchParams.get(TAB); // set the tab if the value is in the url on page load. Useful for page refresh
         if (!tab) {
             setValue(0);
+            dispatch(getCategoriesByType(CategoryTypes.MOVIE));
         } else if (tab === MOVIES) {
+            dispatch(getCategoriesByType(CategoryTypes.MOVIE));
             setValue(0);
         } else {
+            dispatch(getCategoriesByType(CategoryTypes.MUSIC));
             setValue(1);
         }
         // setQueryParams(value);
         // eslint-disable-next-line
     }, []);
-
  
 
     // set the category in search params when it changes
@@ -156,14 +159,7 @@ const Downloads: React.FC<{}> = () => {
             dispatch(getCategoriesByType(CategoryTypes.MUSIC));
         }
 
-        setValue((prevValue) => {
-            if (prevValue === 0) {
-                setQueryParams(TAB, MOVIES);
-            } else {
-                setQueryParams(TAB, MUSIC);
-            }
-            return newValue;
-        });
+        setValue(newValue);
     };
 
     const handleGetData = (categoryId: string): void => {
