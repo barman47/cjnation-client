@@ -51,7 +51,7 @@ export class MovieController {
 
     @use(protect)
     @get('/')
-    async getMusic(_req: Request, res: Response) {
+    async getMovies(_req: Request, res: Response) {
         try {
             const movies = await MovieModel.find()
                 .populate({ path: 'genre', select: 'name' })
@@ -68,6 +68,26 @@ export class MovieController {
             return returnError(err, res, 500, 'Failed to get movies');
         }
     }
+    
+    @use(protect)
+    @get('/genre/:genreId')
+    async getMoviesByGenre(req: Request, res: Response) {
+        try {
+            const movies = await MovieModel.find({ genre: req.params.genreId })
+                .populate({ path: 'genre', select: 'name' })
+                .sort({ createdAt: 'desc' })
+                .exec();
+
+            return sendServerResponse(res, {
+                statusCode: 200,
+                success: true,
+                data: movies,
+                count: movies.length
+            });
+        } catch (err) {
+            return returnError(err, res, 500, 'Failed to get movies by genre');
+        }
+    }
 
     @use(protect)
     @get('/search')
@@ -77,7 +97,6 @@ export class MovieController {
             if (req.query.text?.toString().trim() === '') {
                 const movies = await MovieModel.find()
                     .populate({ path: 'genre', select: 'name' })
-                    .sort({ createdAt: 'desc' })
                     .exec();
 
                 return sendServerResponse(res, {
@@ -186,7 +205,7 @@ export class MovieController {
                 statusCode: 200,
                 success: true,
                 data: movie,
-                msg: 'Music deleted successfully'
+                msg: 'Movie deleted successfully'
             });
         } catch (err) {
             return returnError(err, res, 500, 'Failed to delete movie');
