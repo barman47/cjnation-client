@@ -46,6 +46,9 @@ import { AppDispatch } from '@/redux/store';
 import SearchBox from './SearchBox';
 import { LIGHT_GREY, PRIMARY_COLOR, WHITE } from '@/app/theme';
 import { logout, selectIsUserAuthenticated, selectUser } from '@/redux/features/authSlice';
+import debounce from '@/utils/debounce';
+import { getPostsByCategory, searchForApprovedPosts } from '@/redux/features/postsSlice';
+import { selectCategory } from '@/redux/features/categoriesSlice';
 
 interface AppBarProps extends MuiAppBarProps {
     open?: boolean;
@@ -201,7 +204,8 @@ interface Props {
 const AppDrawer: React.FC<Props> = ({ handleOpenSignInModal }: Props) => {
     const dispatch: AppDispatch = useDispatch();
     const pathname = usePathname();
-
+    
+    const category = useSelector(selectCategory);
     const isAuthenticated = useSelector(selectIsUserAuthenticated);
     const user = useSelector(selectUser);
     
@@ -242,6 +246,25 @@ const AppDrawer: React.FC<Props> = ({ handleOpenSignInModal }: Props) => {
         }));
     };
 
+    const handleSearch = (searchText: string) => {
+        dispatch(searchForApprovedPosts(searchText));
+    };
+
+    const debouncedSearch = debounce(handleSearch, 1000);
+    
+    const handleSearchPosts = (searchText: string) => {
+        const url = new URL(window.location.href);
+
+        if (searchText) {
+            url.searchParams.set('text', searchText);
+            debouncedSearch(searchText);
+        } else {
+            url.searchParams.delete('text');
+            dispatch(getPostsByCategory(category._id!));
+        }
+        window.history.pushState({}, '', url.toString());
+    };
+
     return (
         <Box sx={{ display: 'flex' }}>
             <CssBaseline />
@@ -258,7 +281,7 @@ const AppDrawer: React.FC<Props> = ({ handleOpenSignInModal }: Props) => {
                     {pathname === '/' && 
                         <SearchBox 
                             placeholder="Find what you are looking for"
-                            searchHandler={() => {}}
+                            searchHandler={handleSearchPosts}
                         />
                     }
                     {(!matches && !isAuthenticated) &&
