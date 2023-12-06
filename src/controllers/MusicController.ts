@@ -84,6 +84,26 @@ export class MusicController {
     }
 
     @use(protect)
+    @get('/genre/:genreId')
+    async getMusicByGenre(req: Request, res: Response) {
+        try {
+            const musics = await MusicModel.find({ genre: req.params.genreId })
+                .populate({ path: 'genre', select: 'name' })
+                .sort({ createdAt: 'desc' })
+                .exec();
+
+            return sendServerResponse(res, {
+                statusCode: 200,
+                success: true,
+                data: musics,
+                count: musics.length
+            });
+        } catch (err) {
+            return returnError(err, res, 500, 'Failed to get musics by genre');
+        }
+    }
+
+    @use(protect)
     @get('/search')
     async searchMusic(req: Request, res: Response) {
         try {

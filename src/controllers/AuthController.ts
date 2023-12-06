@@ -88,16 +88,11 @@ export class AuthController {
                         statusCode: 201, 
                         success: true, 
                         data: { verificationToken },  
-                        msg: `Account not verified. We have sent a verification link to ${email}. Kindly click the link in the email to verify your account.`
+                        msg: `Account not verified. We have sent a verification link to ${email}.`
                     });       
                 }
 
-                return sendServerResponse(res, { 
-                    statusCode: 201, 
-                    success: true, 
-                    data: { },  
-                    msg: `Account not verified. We have sent a verification link to ${email}. Kindly click the link in the email to verify your account.`
-                });
+                return sendTokenResponse(user, 200, `Account not verified. We have sent a verification link to ${email}.`, res);
             }
 
             return sendTokenResponse(user, 200, 'Login successful', res);
@@ -181,6 +176,46 @@ export class AuthController {
             return sendTokenResponse(user, 200, 'Login successful', res);
         } catch (err) {
             return returnError(err, res, 500, 'Failed to verify user login');   
+        }
+    }
+
+    @use(protect)
+    @get('/emailVerification')
+    async getVerificationLink (req: Request, res: Response) {
+        try {
+            const user = await UserModel.findById(req.user._id);
+            if (!user) {
+                return sendServerResponse(res, { 
+                    statusCode: 200, 
+                    success: true, 
+                    data: {  },
+                    msg: `Email verification link has been sent`,
+                });
+            }
+
+            const verificationToken = user.generateEmailVerificationToken();
+        
+            // Create verification url
+            const origin = req.headers.origin;
+            const verificationUrl = `${origin}/auth/emailVerification?token=${verificationToken}`;
+            const message = `Click the <a href="${verificationUrl}" target="_blank">Verify Account</a> link to verify your account.`;
+        
+            await Promise.all([
+                user.save({ validateBeforeSave: false }),
+                sendEmail({
+                    to: user.email,
+                    subject: 'Account Verification',
+                    html: message
+                })
+            ]);
+            return sendServerResponse(res, { 
+                statusCode: 200, 
+                success: true, 
+                data: {  },
+                msg: `Email verification link has been sent to ${user.email}`,
+            });
+        } catch (err) {
+            return returnError(err, res, 500, 'Failed to generate email verification link');
         }
     }
 
