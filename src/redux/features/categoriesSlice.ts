@@ -42,9 +42,15 @@ export const categories = createSlice({
         setCategory: (state, action: PayloadAction<Category | null>) => {
             state.category = action.payload || {} as Category;
         },
+
+        setCategories: (state, action: PayloadAction<Category[]>) => {
+            state.categories = action.payload;
+        },
+
         setCategoriesMessage: (state, action: PayloadAction<string | null>) => {
             state.msg = action.payload
         },
+
         clearCategoriesErrors: (state) => {
             state.error = {} as CategoryError;
         },
@@ -69,7 +75,8 @@ export const categories = createSlice({
 export const {
     clearCategoriesErrors,
     setCategoriesMessage,
-    setCategory
+    setCategory,
+    setCategories
 } = categories.actions;
 
 export const selectCategoryErrors = (state: RootState) => state.categories.error;

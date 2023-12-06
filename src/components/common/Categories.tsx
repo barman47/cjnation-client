@@ -1,20 +1,18 @@
 'use client';
 
-import { AppDispatch } from '@/redux/store';
+import { useEffect } from 'react';
 import { 
     Chip,
     Stack,
     Theme
  } from '@mui/material';
-import { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { makeStyles } from 'tss-react/mui';
-import { useQueryState } from 'next-usequerystate';
 
 import { Category } from '@/interfaces';
-import { selectCategory, setCategory } from '@/redux/features/categoriesSlice';
-import { getPostsByCategory } from '@/redux/features/postsSlice';
+import { selectCategory } from '@/redux/features/categoriesSlice';
 import { capitalize } from '@/utils/capitalize';
+import { useSearchParams } from 'next/navigation';
 
 const useStyles = makeStyles()((theme: Theme) => ({
     root: {
@@ -28,30 +26,57 @@ const useStyles = makeStyles()((theme: Theme) => ({
 
 interface Props {
     categories: Category[];
+    searchParamName: string;
+    setCategory: (category: Category) => void;
+    getFunction: (categoryId: string) => void;
 }
 
-const Categories: React.FC<Props> = ({ categories }) => {
+const Categories: React.FC<Props> = ({ categories, getFunction, setCategory, searchParamName }) => {
     const { classes } = useStyles();
-    const dispatch: AppDispatch = useDispatch();
+    const searchParams = useSearchParams();
+    
     const selectedCategory = useSelector(selectCategory);
 
-    const [categoryType, setCategoryType] = useQueryState('category');
-    
     useEffect(() => {
-        if (categories.length) {
+        const categoryType = searchParams.get(searchParamName);
+        // Get the data when the user opens the page with existing search parameter
+        if (categories.length) { // this is to ensure it runs only when there are categories. Useful if the page is refreshed
             if (categoryType) {
-                // Find the category by type. This happens when the user selects a category or if a link with a category is visited
-                const category = categories.find((item: Category) => item.name.toLowerCase() === categoryType.toLowerCase())!;
-                dispatch(setCategory(category));
-                dispatch(getPostsByCategory(category._id!));
+                const category = categories.find((item: Category) => item.name.toLowerCase() === categoryType.toLowerCase());
+                if (category) {
+                    setCategory(category);
+                    getFunction(category._id!);
+                }
             } else {
-                // Select the first category. This happens on page load
+                // Select the first category since none exists in the url
                 const category = categories[0];
-                dispatch(setCategory(category));
-                dispatch(getPostsByCategory(category._id!));
+                handleSetCategory(category);
             }
         }
-    }, [categories, dispatch, categoryType, setCategoryType]);
+        // eslint-disable-next-line
+    }, [categories]);
+
+    const handleSetCategory = (category: Category): void => {
+        // const currentSearchParams = new URLSearchParams(window.location.search);
+        // currentSearchParams.set(searchParamName, category.name.toLowerCase());
+        
+        // // Build the new URL with the updated query parameters
+        // const newUrl = `${window.location.pathname}?${currentSearchParams.toString()}`;
+        
+        // // Update the URL without replacing the entire state
+        // window.history.pushState({}, '', newUrl);
+
+        setCategory(category);
+        getFunction(category._id!);
+
+        // window.history.pushState({}, '', `?${searchParamName}=${category.name.toLowerCase()}`);
+        // setCategory(category);
+        // getFunction(category._id!);
+    };
+
+    if (!categories.length) {
+        return null;
+    }
 
     return (
         <Stack direction="row" spacing={1} className={classes.root}>
@@ -60,9 +85,7 @@ const Categories: React.FC<Props> = ({ categories }) => {
                     key={category._id} 
                     label={capitalize(category.name)} 
                     variant="filled" 
-                    onClick={() => {
-                        setCategoryType(category.name.toLowerCase());
-                    }}
+                    onClick={() => handleSetCategory(category)}
                     color={category._id === selectedCategory._id ? 'secondary' : 'default'}
                 />
             ))}

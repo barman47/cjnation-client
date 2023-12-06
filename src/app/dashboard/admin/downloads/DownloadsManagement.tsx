@@ -26,7 +26,6 @@ import { AppDispatch } from '@/redux/store';
 import { clearMovieErrors, getMovies, searchMovies, selectMovieErrors, setMovie } from '@/redux/features/moviesSlice';
 import AddMusicModal from './AddMusicModal';
 import { clearMusicErrors, getMusics, searchMusic, selectMusicErrors, setMusic } from '@/redux/features/musicSlice';
-import { useQueryState } from 'next-usequerystate';
 import debounce from '@/utils/debounce';
 import { Movie, Music } from '@/interfaces';
 
@@ -59,7 +58,7 @@ const DownloadsManagement: React.FC<{}> = () => {
     const { classes } = useStyles();
     const dispatch: AppDispatch = useDispatch();
 
-    const [_searchText, setSearchText] = useQueryState('text');
+    const [searchText, setSearchText] = React.useState('');
 
     const [value, setValue] = React.useState(0);
 
@@ -68,6 +67,13 @@ const DownloadsManagement: React.FC<{}> = () => {
 
     const movieErrors = useSelector(selectMovieErrors);
     const musicErrors = useSelector(selectMusicErrors);
+
+    React.useEffect(() => {
+        if (searchText) {
+            handleSearch(searchText);
+        }
+        // eslint-disable-next-line
+    }, []);
 
     React.useEffect(() => {
         if (value === 0) {
@@ -111,9 +117,17 @@ const DownloadsManagement: React.FC<{}> = () => {
     };
 
     const debouncedSearch = debounce(handleSearch, 1000);
-    
-    const handleLocationChange = (searchText: string) => {
+
+    const handleSearchDownloads = (searchText: string) => {
         setSearchText(searchText);
+        const url = new URL(window.location.href);
+
+        if (searchText) {
+            url.searchParams.set('text', searchText);
+        } else {
+            url.searchParams.delete('text');
+        }
+        window.history.pushState({}, '', url.toString());
         debouncedSearch(searchText);
     };
 
@@ -165,7 +179,7 @@ const DownloadsManagement: React.FC<{}> = () => {
                         </Tabs>
                     </Box>
                     <Stack direction="row" spacing={5} alignItems="center" alignSelf="flex-start">
-                        <SearchBox searchHandler={handleLocationChange} />
+                        <SearchBox searchHandler={handleSearchDownloads} />
                         {value === 0 ?
                             <Button
                                 variant="outlined"

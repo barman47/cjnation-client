@@ -46,6 +46,15 @@ export const getMusics = createAsyncThunk<ApiResponse, void, { rejectValue: ApiE
     }
 });
 
+export const getMusicsByGenre = createAsyncThunk<ApiResponse, string, { rejectValue: ApiErrorResponse }>('music/getMusicsByGenre', async (genreId, { rejectWithValue }) => {
+    try {
+        const res = await axios.get<ApiResponse>(`${URL}/genre/${genreId}`);
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to get musics by genre');
+    }
+});
+
 export const deleteMusic = createAsyncThunk<ApiResponse, string, { rejectValue: ApiErrorResponse }>('music/deleteMusic', async (musicId, { rejectWithValue }) => {
     try {
         const res = await axios.delete<ApiResponse>(`${URL}/${musicId}`);
@@ -155,6 +164,18 @@ export const music = createSlice({
             state.musics = action.payload.data;
         })
         .addCase(getMusics.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
+
+        .addCase(getMusicsByGenre.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(getMusicsByGenre.fulfilled, (state, action) => {
+            state.isLoading = false;
+            state.musics = action.payload.data;
+        })
+        .addCase(getMusicsByGenre.rejected, (state, action) => {
             state.isLoading = false;
             state.error = action.payload?.data;
         })

@@ -137,7 +137,7 @@ const Post: React.FC<Props> = ({ post }) => {
                 <Box component="div" className={classes.dot}></Box>
                 <Typography variant="subtitle1">{post.readDuration} min read</Typography>
                 <Box component="div" className={classes.dot}></Box>
-                <Chip label={typeof post.category === 'string' ? post.category : post.category.name} sx={{ color: OFF_BLACK }} />
+                <Chip label={typeof post.category === 'string' ? post.category : capitalize(post.category.name)} sx={{ color: OFF_BLACK }} />
             </Stack>
         </Stack>
     );

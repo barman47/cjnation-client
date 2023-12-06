@@ -89,15 +89,24 @@ export const deleteAvatar = createAsyncThunk<ApiResponse, string, { rejectValue:
     }
 });
 
-// export const verifyUserEmail = createAsyncThunk<ApiResponse, string, { rejectValue: ApiErrorResponse }>('auth/verifyUserEmail', async (token, { rejectWithValue }) => {
-//     try {
-//         const res = await axios.get<ApiResponse>(`${URL}/emailVerification/${token}`);
-//         setAuthToken(res.data.data.token!);
-//         return res.data;
-//     } catch (err) {
-//         return handleError(err, rejectWithValue, 'Failed to verify user email');
-//     }
-// });
+export const getEmailVerificationLink = createAsyncThunk<ApiResponse, void, { rejectValue: ApiErrorResponse }>('auth/getEmailVerificationLink', async (_, { rejectWithValue }) => {
+    try {
+        const res = await axios.get<ApiResponse>(`${URL}/emailVerification`);
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to generate email verification link');
+    }
+});
+
+export const verifyUserEmail = createAsyncThunk<ApiResponse, string, { rejectValue: ApiErrorResponse }>('auth/verifyUserEmail', async (token, { rejectWithValue }) => {
+    try {
+        const res = await axios.get<ApiResponse>(`${URL}/emailVerification/${token}`);
+        setAuthToken(res.data.data.token!);
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to verify user email');
+    }
+});
 
 export const forgotPassword = createAsyncThunk<ApiResponse, string, { rejectValue: ApiErrorResponse }>('auth/forgotPassword', async (email, { rejectWithValue }) => {
     try {
@@ -186,20 +195,20 @@ export const auth = createSlice({
             state.error = action.payload?.data;
         })
 
-        // .addCase(verifyUserEmail.pending, (state) => {
-        //     state.isLoading = true;
-        // })
-        // .addCase(verifyUserEmail.fulfilled, (state, action: PayloadAction<ApiResponse>) => {
-        //     state.isLoading = false;
-        //     state.isAuthenticated = true;
-        //     const { user } = action.payload.data;
-        //     state.user = { ...user };
-        //     state.msg = action.payload.msg!
-        // })
-        // .addCase(verifyUserEmail.rejected, (state, action) => {
-        //     state.isLoading = false;
-        //     state.error = action.payload?.data;
-        // })
+        .addCase(verifyUserEmail.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(verifyUserEmail.fulfilled, (state, action: PayloadAction<ApiResponse>) => {
+            state.isLoading = false;
+            state.isAuthenticated = true;
+            const { user } = action.payload.data;
+            state.user = { ...user };
+            state.msg = action.payload.msg || 'Email verified successfully'
+        })
+        .addCase(verifyUserEmail.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
 
         .addCase(getCurrentUser.pending, (state) => {
             state.isLoading = true;
@@ -234,6 +243,18 @@ export const auth = createSlice({
             state.msg = action.payload.msg!;
         })
         .addCase(resetPassword.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
+
+        .addCase(getEmailVerificationLink.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(getEmailVerificationLink.fulfilled, (state, action: PayloadAction<ApiResponse>) => {
+            state.isLoading = false;
+            state.msg = action.payload.msg || 'Email verification link has been sent';
+        })
+        .addCase(getEmailVerificationLink.rejected, (state, action) => {
             state.isLoading = false;
             state.error = action.payload?.data;
         })

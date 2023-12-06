@@ -55,6 +55,15 @@ export const getMovies = createAsyncThunk<ApiResponse, void, { rejectValue: ApiE
     }
 });
 
+export const getMoviesByGenre = createAsyncThunk<ApiResponse, string, { rejectValue: ApiErrorResponse }>('movies/getMoviesByGenre', async (genreId, { rejectWithValue }) => {
+    try {
+        const res = await axios.get<ApiResponse>(`${URL}/genre/${genreId}`);
+        return res.data;
+    } catch (err) {
+        return handleError(err, rejectWithValue, 'Failed to get movies by genre');
+    }
+});
+
 export const deleteMovie = createAsyncThunk<ApiResponse, string, { rejectValue: ApiErrorResponse }>('movies/deleteMovie', async (movieId, { rejectWithValue }) => {
     try {
         const res = await axios.delete<ApiResponse>(`${URL}/${movieId}`);
@@ -155,6 +164,18 @@ export const movies = createSlice({
             state.movies = action.payload.data;
         })
         .addCase(getMovies.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload?.data;
+        })
+
+        .addCase(getMoviesByGenre.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(getMoviesByGenre.fulfilled, (state, action) => {
+            state.isLoading = false;
+            state.movies = action.payload.data;
+        })
+        .addCase(getMoviesByGenre.rejected, (state, action) => {
             state.isLoading = false;
             state.error = action.payload?.data;
         })

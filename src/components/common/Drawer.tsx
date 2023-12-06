@@ -162,7 +162,7 @@ const userLinks: NavLink[] = [
     {
         icon: <TrayArrowDown />,
         text: 'Downloads',
-        url: '/'
+        url: '/dashboard/downloads'
     },
     {
         icon: <AccountCircleOutline />,

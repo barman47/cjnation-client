@@ -119,7 +119,7 @@ const AddCategoryModal: React.FC<Props> = React.forwardRef<ModalRef, Props>((_pr
         setErrors({} as LoginData);
     };
 
-    const handleSubmit = ( event: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = ( _event: React.FormEvent<HTMLFormElement>) => {
         // event.preventDefault();
         // setErrors({} as LoginData);
 
