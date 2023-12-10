@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 
 import Home from './(home)';
 import { PAGE_TITLE } from '@/utils/constants';
+import { notFound } from 'next/navigation';
 
 export const metadata: Metadata = {
     title: `Home | ${PAGE_TITLE}`,
@@ -49,6 +50,9 @@ async function getFeaturedPosts () {
 
 const HomePage: React.FC<{}> = async () => {
 	const categoriesResponse = await getPostCategories();
+	if (!categoriesResponse.data.length) {
+		return notFound();
+	}
 	const postsResponse = await getPostsByCategory(categoriesResponse.data[0]._id); // Get posts for the first category
 	const featuredPostsResponse = await getFeaturedPosts();
 
