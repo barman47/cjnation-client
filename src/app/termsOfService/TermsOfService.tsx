@@ -69,7 +69,7 @@ const TermsOfService: React.FC<{}> = () => {
                 </Box>
                 <Box component="section">
                     <Typography variant="h5" className={classes.heading}>Contact Information</Typography>
-                    <Typography variant="body1">If you have any questions about these Terms of Service, please contact us at <a href="mailto:cjnationent.com"></a>cjnationent.com.</Typography>
+                    <Typography variant="body1">If you have any questions about these Terms of Service, please contact us at <a href="mailto:contact@cjnationent.com"></a>contact@cjnationent.com</Typography>
                 </Box>
             </Stack>
         </Box>
