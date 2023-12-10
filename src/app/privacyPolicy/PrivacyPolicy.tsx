@@ -74,7 +74,7 @@ const PrivacyPolicy: React.FC<{}> = () => {
                 <Box component="section">
                     <Typography variant="h5" className={classes.heading}>Contact Information</Typography>
                     <Typography variant="body1">
-                        To ask questions or comment about this Privacy Policy and our privacy practices, email us at <a href="mailto:cjnationent@gmail.com" target="_blank">cjnationent</a> or call <a href="tel:+2348035010980" target="_blank">+2348035010980</a>
+                        To ask questions or comment about this Privacy Policy and our privacy practices, email us at <a href="mailto:contact@cjnationent.com" target="_blank">cjnationent</a> or call <a href="tel:+2348035010980" target="_blank">+2348035010980</a>
                     </Typography>
                 </Box>
             </Stack>

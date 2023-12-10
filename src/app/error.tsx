@@ -37,7 +37,7 @@ const ErrorPage: React.FC<Props> = ({ reset }) => {
                 />
                 <Typography variant="h5">Ooops something went wrong!</Typography>
                 <Typography variant="subtitle1">Looks like we hit a snag. Your expereince is what matters most so a fix is top priority. We’re on it.</Typography>
-                <Typography variant="subtitle1">Kindly try again or contact <a href="mailto:support@cjnation.com">support@cjnation.com</a> if this issue persists</Typography>
+                <Typography variant="subtitle1">Kindly try again or contact <a href="mailto:contact@cjnationent.com">contact@cjnationent.com</a> if this issue persists</Typography>
                 <Stack direction="row" alignItems="center" spacing={2}>
                     <Button
                         variant="contained"
