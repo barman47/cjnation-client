@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             title,
             card: "summary",
             description,
-            creator: 'CJ Nation',
+            creator: 'CJNation',
             images: {
                 url: post.mediaUrl!,
                 alt: post.slug,
