@@ -221,7 +221,7 @@ const Post: React.FC<Props> = ({ post, likes }) => {
                             <TwitterShareButton
                                 url={URL}
                                 title={pageTitle}
-                                hashtags={['1234', '4567']}
+                                hashtags={['CjNationEntertainment', 'GrooveMakers']}
                             >
                                 <Stack direction="row" alignItems="center">
                                     <ListItemIcon>
@@ -234,7 +234,7 @@ const Post: React.FC<Props> = ({ post, likes }) => {
                         <MenuItem onClick={handleClose}>
                             <FacebookShareButton
                                 url={URL}
-                                hashtag="#facebook"
+                                hashtag="#CjNationEntertainment #GrooveMakers"
                             >
                                 <Stack direction="row" alignItems="center">
                                     <ListItemIcon>

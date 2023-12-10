@@ -4,7 +4,8 @@ import Home from './(home)';
 import { PAGE_TITLE } from '@/utils/constants';
 
 export const metadata: Metadata = {
-    title: `Home | ${PAGE_TITLE}`
+    title: `Home | ${PAGE_TITLE}`,
+	description: 'Explore limitless excitement at CJNationent, your premier entertainment destination. Dive into curated movies, diverse music, binge-worthy TV shows, and a comedy treasure trove. Stay in the know with celebrity buzz and upcoming events. Join us for a thrilling journey through the transformative power of entertainment. Let the show begin!'
 };
 
 async function getPostCategories () {
