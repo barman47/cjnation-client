@@ -53,5 +53,9 @@
     "@types/validator": "^13.11.7",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.3.2"
+  },
+  "engines": {
+    "node": "18.18.2",
+    "npm": "9.8.1"
   }
 }
