@@ -140,7 +140,7 @@ const AccountVerificationModal: React.FC<Props> = React.forwardRef<ModalRef, Pro
                             alt="mail image"
                         />
                     </Box>
-                    <Typography variant="body1">If you don&#39;t see it within a few minutes, be sure to check your spam folders.</Typography>
+                    <Typography variant="body1">If you don&#39;t see it within a few minutes, be sure to check your spam folder.</Typography>
                     <Button 
                         LinkComponent="a"
                         href="mailto:"
