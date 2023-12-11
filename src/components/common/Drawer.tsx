@@ -358,34 +358,10 @@ const AppDrawer: React.FC<Props> = ({ handleOpenSignInModal }: Props) => {
                     </DrawerHeader>
                     <Divider />
                     <List>
-                        {userLinks.map((item: NavLink) => (
-                            <ListItem key={item.text} disablePadding sx={{ display: 'block' }}>
-                                <ListItemButton
-                                    LinkComponent={Link}
-                                    href={item.url}
-                                    sx={{
-                                        minHeight: 48,
-                                        justifyContent: open ? 'initial' : 'center',
-                                        px: 2.5,
-                                    }}
-                                >
-                                    <ListItemIcon
-                                        sx={{
-                                            minWidth: 0,
-                                            mr: 3,
-                                            justifyContent: 'center',
-                                        }}
-                                    >
-                                        {item.icon}
-                                    </ListItemIcon>
-                                    <ListItemText primary={item.text} />
-                                </ListItemButton>
-                            </ListItem>
-                        ))}
-                        <Divider />
-                        {user.role === Role.ADMIN && 
+                        {isAuthenticated
+                            ?
                             <>
-                                {adminLinks.map((item: NavLink) => (
+                                {userLinks.map((item: NavLink) => (
                                     <ListItem key={item.text} disablePadding sx={{ display: 'block' }}>
                                         <ListItemButton
                                             LinkComponent={Link}
@@ -409,9 +385,37 @@ const AppDrawer: React.FC<Props> = ({ handleOpenSignInModal }: Props) => {
                                         </ListItemButton>
                                     </ListItem>
                                 ))}
+                                <Divider />
+                                {user.role === Role.ADMIN && 
+                                    <>
+                                        {adminLinks.map((item: NavLink) => (
+                                            <ListItem key={item.text} disablePadding sx={{ display: 'block' }}>
+                                                <ListItemButton
+                                                    LinkComponent={Link}
+                                                    href={item.url}
+                                                    sx={{
+                                                        minHeight: 48,
+                                                        justifyContent: open ? 'initial' : 'center',
+                                                        px: 2.5,
+                                                    }}
+                                                >
+                                                    <ListItemIcon
+                                                        sx={{
+                                                            minWidth: 0,
+                                                            mr: 3,
+                                                            justifyContent: 'center',
+                                                        }}
+                                                    >
+                                                        {item.icon}
+                                                    </ListItemIcon>
+                                                    <ListItemText primary={item.text} />
+                                                </ListItemButton>
+                                            </ListItem>
+                                        ))}
+                                    </>
+                                }
                             </>
-                        }
-                        {!isAuthenticated && 
+                            :
                             <>
                                 <ListItem>
                                     <Button
@@ -452,34 +456,9 @@ const AppDrawer: React.FC<Props> = ({ handleOpenSignInModal }: Props) => {
                     </DrawerHeader>
                     <Divider />
                     <List>
-                        {userLinks.map((item: NavLink) => (
-                            <ListItem key={item.text} disablePadding sx={{ display: 'block' }}>
-                                <ListItemButton
-                                    LinkComponent={Link}
-                                    href={item.url}
-                                    sx={{
-                                        minHeight: 48,
-                                        justifyContent: open ? 'initial' : 'center',
-                                        px: 2.5,
-                                    }}
-                                >
-                                    <ListItemIcon
-                                        sx={{
-                                            minWidth: 0,
-                                            mr: open ? 3 : 'auto',
-                                            justifyContent: 'center',
-                                        }}
-                                    >
-                                        {item.icon}
-                                    </ListItemIcon>
-                                    <ListItemText primary={item.text} sx={{ opacity: open ? 1 : 0 }} />
-                                </ListItemButton>
-                            </ListItem>
-                        ))}
-                        <Divider />
-                        {user.role === Role.ADMIN && 
+                        {isAuthenticated &&
                             <>
-                                {adminLinks.map((item: NavLink) => (
+                                {userLinks.map((item: NavLink) => (
                                     <ListItem key={item.text} disablePadding sx={{ display: 'block' }}>
                                         <ListItemButton
                                             LinkComponent={Link}
@@ -502,7 +481,36 @@ const AppDrawer: React.FC<Props> = ({ handleOpenSignInModal }: Props) => {
                                             <ListItemText primary={item.text} sx={{ opacity: open ? 1 : 0 }} />
                                         </ListItemButton>
                                     </ListItem>
-                                ))} 
+                                ))}
+                                <Divider />
+                                {user.role === Role.ADMIN && 
+                                    <>
+                                        {adminLinks.map((item: NavLink) => (
+                                            <ListItem key={item.text} disablePadding sx={{ display: 'block' }}>
+                                                <ListItemButton
+                                                    LinkComponent={Link}
+                                                    href={item.url}
+                                                    sx={{
+                                                        minHeight: 48,
+                                                        justifyContent: open ? 'initial' : 'center',
+                                                        px: 2.5,
+                                                    }}
+                                                >
+                                                    <ListItemIcon
+                                                        sx={{
+                                                            minWidth: 0,
+                                                            mr: open ? 3 : 'auto',
+                                                            justifyContent: 'center',
+                                                        }}
+                                                    >
+                                                        {item.icon}
+                                                    </ListItemIcon>
+                                                    <ListItemText primary={item.text} sx={{ opacity: open ? 1 : 0 }} />
+                                                </ListItemButton>
+                                            </ListItem>
+                                        ))} 
+                                    </>
+                                }
                             </>
                         }
                     </List>
