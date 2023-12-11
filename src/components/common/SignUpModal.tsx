@@ -205,7 +205,7 @@ const SignUpModal: React.FC<Props> = React.forwardRef<ModalRef, Props>(({ handle
                         By continuing, you are setting up an account and agree to our <Link href="/termsOfService" target="_blank">Terms of Service</Link> and <Link href="/privacyPolicy" target="_blank">Privacy Policy</Link>
                     </Typography>
                     <GoogleLogin
-                        text="continue_with"
+                        text="signup_with"
                         onSuccess={response => {
                             dispatch(verifySocialLogin({ accessToken: response.credential!, provider: Provider.GOOGLE }));
                         }}

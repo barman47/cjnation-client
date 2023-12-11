@@ -146,7 +146,7 @@ const EmailVerification: React.FC<{}> = () => {
                         <CheckCircle className={classes.icon} />
                     </Box>
                     <Typography variant="h5">Success</Typography>
-                    <Typography variant="body1">Thanks for verifying your email. Now let&#39;s take your to your homepage...</Typography>
+                    <Typography variant="body1">Thanks for verifying your email. Now let&#39;s take you to your homepage...</Typography>
                 </>
             }
             <Button
