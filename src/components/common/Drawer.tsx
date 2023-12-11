@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useDispatch, useSelector } from 'react-redux';
 import { styled, useTheme, Theme, CSSObject } from '@mui/material/styles';
 import { 
@@ -49,6 +50,7 @@ import { logout, selectIsUserAuthenticated, selectUser } from '@/redux/features/
 import debounce from '@/utils/debounce';
 import { getPostsByCategory, searchForApprovedPosts } from '@/redux/features/postsSlice';
 import { selectCategory } from '@/redux/features/categoriesSlice';
+import logo from '../../../public/assets/logo.png';
 
 interface AppBarProps extends MuiAppBarProps {
     open?: boolean;
@@ -81,10 +83,13 @@ const closedMixin = (theme: Theme): CSSObject => ({
 const DrawerHeader = styled('div')(({ theme }) => ({
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'flex-end',
-    padding: theme.spacing(0, 1),
+    justifyContent: 'center',
     // necessary for content to be below app bar
     ...theme.mixins.toolbar,
+
+    [theme.breakpoints.down('sm')]: {
+        marginTop: theme.spacing(10)
+    }
 }));
 
 const DrawerToolBar = styled(Toolbar)(({ theme }) => ({
@@ -143,6 +148,13 @@ const AccountMenuItem = styled(MenuItem)(({ theme }) => ({
 
 const LogoutMenuItem = styled(MenuItem)(({ theme }) => ({
     color: theme.palette.error.main
+}));
+
+const Logo = styled(Image)(() => ({
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+    objectPosition: 'center'
 }));
 
 interface NavLink {
@@ -352,9 +364,14 @@ const AppDrawer: React.FC<Props> = ({ handleOpenSignInModal }: Props) => {
                     onClose={handleToggleDrawer}
                 >
                     <DrawerHeader>
-                    {/* <IconButton onClick={handleToggleDrawer}>
-                        {!open && <ChevronRight /> }
-                    </IconButton> */}
+                        <Link href="/">
+                            <Logo 
+                                src={logo.src}
+                                width={180}
+                                height={35}
+                                alt="Logo"
+                            />
+                        </Link>
                     </DrawerHeader>
                     <Divider />
                     <List>
@@ -385,7 +402,9 @@ const AppDrawer: React.FC<Props> = ({ handleOpenSignInModal }: Props) => {
                                         </ListItemButton>
                                     </ListItem>
                                 ))}
+                                <br />
                                 <Divider />
+                                <br />
                                 {user.role === Role.ADMIN && 
                                     <>
                                         {adminLinks.map((item: NavLink) => (
@@ -450,9 +469,14 @@ const AppDrawer: React.FC<Props> = ({ handleOpenSignInModal }: Props) => {
                 :
                 <Drawer variant={matches ? 'temporary' : 'permanent'} open={open} anchor="left">
                     <DrawerHeader>
-                    {/* <IconButton onClick={handleToggleDrawer}>
-                        {!open && <ChevronRight /> }
-                    </IconButton> */}
+                        <Link href="/">
+                            <Logo 
+                                src={logo.src}
+                                width={180}
+                                height={35}
+                                alt="Logo"
+                            />
+                        </Link>
                     </DrawerHeader>
                     <Divider />
                     <List>
@@ -460,53 +484,59 @@ const AppDrawer: React.FC<Props> = ({ handleOpenSignInModal }: Props) => {
                             <>
                                 {userLinks.map((item: NavLink) => (
                                     <ListItem key={item.text} disablePadding sx={{ display: 'block' }}>
-                                        <ListItemButton
-                                            LinkComponent={Link}
-                                            href={item.url}
-                                            sx={{
-                                                minHeight: 48,
-                                                justifyContent: open ? 'initial' : 'center',
-                                                px: 2.5,
-                                            }}
-                                        >
-                                            <ListItemIcon
+                                        <Tooltip title={ open ? '' : item.text} placement='right'>
+                                            <ListItemButton
+                                                LinkComponent={Link}
+                                                href={item.url}
                                                 sx={{
-                                                    minWidth: 0,
-                                                    mr: open ? 3 : 'auto',
-                                                    justifyContent: 'center',
+                                                    minHeight: 48,
+                                                    justifyContent: open ? 'initial' : 'center',
+                                                    px: 2.5,
                                                 }}
                                             >
-                                                {item.icon}
-                                            </ListItemIcon>
-                                            <ListItemText primary={item.text} sx={{ opacity: open ? 1 : 0 }} />
-                                        </ListItemButton>
+                                                <ListItemIcon
+                                                    sx={{
+                                                        minWidth: 0,
+                                                        mr: open ? 3 : 'auto',
+                                                        justifyContent: 'center',
+                                                    }}
+                                                >
+                                                    {item.icon}
+                                                </ListItemIcon>
+                                                <ListItemText primary={item.text} sx={{ opacity: open ? 1 : 0 }} />
+                                            </ListItemButton>
+                                        </Tooltip>
                                     </ListItem>
                                 ))}
+                                <br />
                                 <Divider />
+                                <br />
                                 {user.role === Role.ADMIN && 
                                     <>
                                         {adminLinks.map((item: NavLink) => (
                                             <ListItem key={item.text} disablePadding sx={{ display: 'block' }}>
-                                                <ListItemButton
-                                                    LinkComponent={Link}
-                                                    href={item.url}
-                                                    sx={{
-                                                        minHeight: 48,
-                                                        justifyContent: open ? 'initial' : 'center',
-                                                        px: 2.5,
-                                                    }}
-                                                >
-                                                    <ListItemIcon
+                                                <Tooltip title={ open ? '' : item.text} placement='right'>
+                                                    <ListItemButton
+                                                        LinkComponent={Link}
+                                                        href={item.url}
                                                         sx={{
-                                                            minWidth: 0,
-                                                            mr: open ? 3 : 'auto',
-                                                            justifyContent: 'center',
+                                                            minHeight: 48,
+                                                            justifyContent: open ? 'initial' : 'center',
+                                                            px: 2.5,
                                                         }}
                                                     >
-                                                        {item.icon}
-                                                    </ListItemIcon>
-                                                    <ListItemText primary={item.text} sx={{ opacity: open ? 1 : 0 }} />
-                                                </ListItemButton>
+                                                        <ListItemIcon
+                                                            sx={{
+                                                                minWidth: 0,
+                                                                mr: open ? 3 : 'auto',
+                                                                justifyContent: 'center',
+                                                            }}
+                                                        >
+                                                            {item.icon}
+                                                        </ListItemIcon>
+                                                        <ListItemText primary={item.text} sx={{ opacity: open ? 1 : 0 }} />
+                                                    </ListItemButton>
+                                                </Tooltip>
                                             </ListItem>
                                         ))} 
                                     </>
