@@ -74,8 +74,6 @@ interface Props {
     likes: Like[];
 }
 
-const URL = window.location.href;
-
 const Post: React.FC<Props> = ({ post, likes }) => {
     const { classes } = useStyles();
     const dispatch: AppDispatch = useDispatch();
@@ -98,6 +96,8 @@ const Post: React.FC<Props> = ({ post, likes }) => {
     const forgotPasswordModalRef = React.useRef<ModalRef | null>(null);
     const signInModalRef = React.useRef<ModalRef | null>(null);
     const signUpModalRef = React.useRef<ModalRef | null>(null);
+
+    const URL = window.location.href;
 
     const handleOpenForgotPasswordModal = ():void => {
         forgotPasswordModalRef.current?.openModal();
