@@ -62,8 +62,7 @@ const useStyles = makeStyles()((theme: Theme) => ({
     },
 
     imageContainer: {
-        
-        width: theme.spacing(70),
+        width: theme.spacing(250),
         height: theme.spacing(25),
         // height: '55%',
         // width: '100%',
