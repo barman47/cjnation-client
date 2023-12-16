@@ -144,9 +144,6 @@ export class AuthController {
                     html: message
                 })
             ]);
-            user.set('emailVerificationToken', undefined);
-            user.set('emailVerificationTokenExpiration', undefined);
-
             return sendTokenResponse(user, 201, `User created successfully`, res);
         } catch (err) {
             return returnError(err, res, 500, 'Unable to register user');
@@ -358,7 +355,7 @@ export class AuthController {
                     statusCode: 200, 
                     success: true, 
                     data: {  resetToken },
-                    msg: `Password reset link has been sent to to this email ${email}`,
+                    msg: `Password reset link has been sent to ${email}`,
                 });
             }
     
@@ -366,7 +363,7 @@ export class AuthController {
                 statusCode: 200, 
                 success: true, 
                 data: { },
-                msg: `Password reset link has been sent to to this email ${email}`,
+                msg: `Password reset link has been sent to ${email}`,
             });
         } catch (err) {
             return returnError(err, res, 500, 'Unable to send password reset email');
