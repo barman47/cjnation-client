@@ -155,7 +155,7 @@ const Post: React.FC<Props> = ({ post, likes }) => {
                 <Stack direction="column" spacing={3}>
                     <Typography variant="h5" className={classes.title}>{post.title}</Typography>
                     <Stack direction="row" spacing={1}>
-                        <Avatar />
+                        <Avatar src={typeof post.author === 'string' ? '' : post.author.avatar!} />
                         <Stack direction="column">
                             <Typography variant="subtitle2" className={classes.author}>{typeof post.author === 'string' ? post.author : capitalize(post.author.name)}</Typography>
                             <Stack direction="row" spacing={1} alignItems="center">
@@ -171,6 +171,7 @@ const Post: React.FC<Props> = ({ post, likes }) => {
                         width={800}
                         height={1200}
                         className={classes.image}
+                        priority
                     />
                     {parse(post.body)}
                     <Stack direction="row" spacing={3}>
