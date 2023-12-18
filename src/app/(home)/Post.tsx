@@ -128,6 +128,7 @@ const Post: React.FC<Props> = ({ post }) => {
                         height={300}
                         alt={post.title}
                         className={classes.postImage}
+                        priority
                     />
                 </Box>
             </Stack>

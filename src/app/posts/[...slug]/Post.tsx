@@ -22,14 +22,13 @@ import parse from 'html-react-parser';
 import moment from 'moment';
 import _ from 'lodash';
 import { TwitterShareButton, FacebookShareButton, LinkedinShareButton, WhatsappShareButton } from 'react-share';
-import {  useRouter } from 'next/navigation';
 import { ChatOutline, Facebook, HeartOutline, Link, Linkedin, TrayArrowUp, Twitter, Whatsapp } from 'mdi-material-ui';
 
 import { Like, Post as PostData } from '@/interfaces';
 import { DARK_GREY, OFF_BLACK } from '@/app/theme';
 import { capitalize } from '@/utils/capitalize';
 import { AppDispatch } from '@/redux/store';
-import { addLike, clearError, removeLike, selectIsLikesLoading, selectLikesErrors, selectLikesMessage, setLikesMessage } from '@/redux/features/likesSlice';
+import { addLike, clearError, removeLike, selectIsLikesLoading, selectLikes, selectLikesErrors, selectLikesMessage, setLikes, setLikesMessage } from '@/redux/features/likesSlice';
 import { setToast } from '@/redux/features/appSlice';
 import { selectIsUserAuthenticated, selectUser } from '@/redux/features/authSlice';
 import { userLikedPost } from '@/utils/userLikedPost';
@@ -37,6 +36,7 @@ import { ModalRef, PAGE_TITLE } from '@/utils/constants';
 import SignInModal from '@/components/common/SignInModal';
 import ForgotPasswordModal from '@/components/common/ForgotPasswordModal';
 import SignUpModal from '@/components/common/SignUpModal';
+import { selectComments, setComments } from '@/redux/features/commentsSlice';
 
 const useStyles = makeStyles()((theme) => ({
     title: {
@@ -77,18 +77,19 @@ interface Props {
 const Post: React.FC<Props> = ({ post, likes }) => {
     const { classes } = useStyles();
     const dispatch: AppDispatch = useDispatch();
-    const router = useRouter();
     
     const isAuthenticated = useSelector(selectIsUserAuthenticated);
     const loading = useSelector(selectIsLikesLoading);
     const msg = useSelector(selectLikesMessage);
+    const postCommets = useSelector(selectComments);
+    const postLikes = useSelector(selectLikes);
     const likesError = useSelector(selectLikesErrors);
     const user = useSelector(selectUser);
 
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const open = Boolean(anchorEl);
 
-    const likedPost = (userLikedPost(likes, user._id!));
+    const likedPost = (userLikedPost(postLikes, user._id!));
 
     const pageTitle = `${post.title} | ${PAGE_TITLE}`;
     const pageDescription = post.body.slice(0, 161);
@@ -98,6 +99,17 @@ const Post: React.FC<Props> = ({ post, likes }) => {
     const signUpModalRef = React.useRef<ModalRef | null>(null);
 
     const URL = window.location.href;
+
+    React.useEffect(() => {
+        return () => {
+            dispatch(setComments([]));
+            dispatch(setLikes([]));
+        };
+    }, [dispatch]);
+
+    React.useEffect(() => {
+        dispatch(setLikes(likes));
+    }, [dispatch, likes]);
 
     const handleOpenForgotPasswordModal = ():void => {
         forgotPasswordModalRef.current?.openModal();
@@ -124,10 +136,9 @@ const Post: React.FC<Props> = ({ post, likes }) => {
 
     React.useEffect(() => {
         if (msg) {
-            router.refresh();
             dispatch(setLikesMessage(null));
         }
-    }, [dispatch, msg, router]);
+    }, [dispatch, msg]);
 
     const handleClick = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         setAnchorEl(event.currentTarget);
@@ -177,7 +188,7 @@ const Post: React.FC<Props> = ({ post, likes }) => {
                     <Stack direction="row" spacing={3}>
                         <Chip 
                             icon={<HeartOutline />} 
-                            label={post.likes} 
+                            label={postLikes.length} 
                             onClick={() => {
                                 if (!isAuthenticated) {
                                     handleOpenSignInModal();
@@ -195,7 +206,7 @@ const Post: React.FC<Props> = ({ post, likes }) => {
                             disabled={loading}
                             color={likedPost ? 'primary' : 'default'}
                         />
-                        <Chip icon={<ChatOutline />} label={post.comments} />
+                        <Chip icon={<ChatOutline />} label={postCommets.length} />
                         <Chip icon={<TrayArrowUp />} label="Share" onClick={handleClick} />
                     </Stack>
                 </Stack>

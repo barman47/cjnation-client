@@ -16,12 +16,14 @@ export interface CommentData {
 }
 
 interface CommentState {
+    comments: Comment[];
     isLoading: boolean;
     msg: string | null;
     error: CommentsError;
 };
 
 const initialState: CommentState = {
+    comments: [],
     isLoading: false,
     msg: null,
     error: {} as CommentsError
@@ -40,10 +42,13 @@ export const comments = createSlice({
     name: 'comments',
     initialState,
     reducers: {
+        setComments: (state, action: PayloadAction<Comment[]>) => {
+            state.comments = action.payload;
+        },
+
         setCommentMessage: (state, action: PayloadAction<string | null>) => {
             state.msg = action.payload;
         },
-        
         clearError: (state) => {
             state.error = {} as CommentsError;
         },
@@ -57,6 +62,8 @@ export const comments = createSlice({
         .addCase(addComment.fulfilled, (state, action) => {
             state.isLoading = false;
             state.msg = action.payload.msg || 'Comment added successfully';
+            state.comments = [action.payload.data, ...state.comments];
+            console.log(action)
         })
         .addCase(addComment.rejected, (state, action) => {
             state.isLoading = false;
@@ -66,10 +73,12 @@ export const comments = createSlice({
 });
 
 export const {
+    setComments,
     setCommentMessage,
     clearError
 } = comments.actions;
 
+export const selectComments = (state: RootState) => state.comments.comments;
 export const selectCommentsErrors = (state: RootState) => state.comments.error;
 export const selectIsCommentLoading = (state: RootState) => state.comments.isLoading;
 export const selectCommentMessage = (state: RootState) => state.comments.msg;

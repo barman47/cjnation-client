@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { useRouter } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     Avatar,
@@ -14,7 +13,7 @@ import _, { isEmpty } from 'lodash';
 
 import { setToast } from '@/redux/features/appSlice';
 import { AppDispatch } from '@/redux/store';
-import { addComment, clearError, CommentsError, selectCommentMessage, selectCommentsErrors, selectIsCommentLoading, setCommentMessage } from '@/redux/features/commentsSlice';
+import { addComment, clearError, CommentsError, selectCommentMessage, selectComments, selectCommentsErrors, selectIsCommentLoading, setCommentMessage } from '@/redux/features/commentsSlice';
 import { ModalRef } from '@/utils/constants';
 import ForgotPasswordModal from '@/components/common/ForgotPasswordModal';
 import SignInModal from '@/components/common/SignInModal';
@@ -23,14 +22,13 @@ import { selectIsUserAuthenticated } from '@/redux/features/authSlice';
 
 interface Props {
     postId: string;
-    numberOfComments: number;
 }
 
-const CommentsForm: React.FC<Props> = ({ postId, numberOfComments }) => {
+const CommentsForm: React.FC<Props> = ({ postId }) => {
     const dispatch: AppDispatch = useDispatch();
-    const router = useRouter();
 
     const isAuthenticated = useSelector(selectIsUserAuthenticated);
+    const comments = useSelector(selectComments);
     const commentsError = useSelector(selectCommentsErrors);
     const loading = useSelector(selectIsCommentLoading);
     const msg = useSelector(selectCommentMessage);
@@ -73,11 +71,10 @@ const CommentsForm: React.FC<Props> = ({ postId, numberOfComments }) => {
 
      React.useEffect(() => {
         if (msg) {
-            router.refresh()
             dispatch(setCommentMessage(null));
             setText('');
         }
-    }, [msg, dispatch, router]);
+    }, [msg, dispatch]);
 
     const handleSubmit = ( event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -98,7 +95,7 @@ const CommentsForm: React.FC<Props> = ({ postId, numberOfComments }) => {
             <SignUpModal ref={signUpModalRef} handleOpenSignInModal={handleOpenSignInModal} />
             <form onSubmit={handleSubmit}>
                 <Stack direction="column" spacing={2} alignItems="flex-end">
-                    <Typography variant="h5" alignSelf="flex-start" sx={{ fontWeight: 500 }}>{numberOfComments} {numberOfComments === 1 ? 'Comment' : 'Comments'}</Typography>
+                    <Typography variant="h5" alignSelf="flex-start" sx={{ fontWeight: 500 }}>{comments.length} {comments.length === 1 ? 'Comment' : 'Comments'}</Typography>
                     <Stack direction="row" spacing={1} alignSelf="stretch">
                         <Avatar />
                         <TextField 

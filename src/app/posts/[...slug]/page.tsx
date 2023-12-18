@@ -116,7 +116,7 @@ const PostPage: React.FC<Props> = async ({ params }) => {
             <Stack direction="column" spacing={3}>
                 <Post post={post} likes={likesResponse.data} />
                 <Divider />
-                <CommentsForm numberOfComments={post.comments} postId={post._id} />
+                <CommentsForm postId={post._id} />
                 <CommentsList comments={commentsResponse.data} />
             </Stack>
         </Box>
