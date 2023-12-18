@@ -26,10 +26,12 @@ export class CommentsController {
                 CommentModel.create({ text: req.body.text, user: req.user._id, post: req.params.postId }),
                 PostModel.updateOne({ _id: req.params.postId }, { $inc: { comments: 1 } })
             ]);
+            const populatedComment = await CommentModel.findById(comment._id).populate({ path: 'user', select: 'name avatar' }).exec();
+
             return sendServerResponse(res, {
                 success: true,
                 statusCode: 201,
-                data: comment,
+                data: populatedComment,
                 msg: 'Comment added successfully'
             });
         } catch (err) {
