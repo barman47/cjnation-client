@@ -17,6 +17,7 @@ export class LikesController {
                 LikeModel.create({ user: req.user._id, post: req.params.postId }),
                 PostModel.updateOne({ _id: req.params.postId }, { $inc: { likes: 1 } })
             ]);
+
             return sendServerResponse(res, {
                 success: true,
                 statusCode: 201,
@@ -32,14 +33,14 @@ export class LikesController {
     @del('/:postId')
     async removeLike(req: Request, res: Response) {
         try {
-            await Promise.all([
-                LikeModel.deleteOne({ user: req.user._id }),
+            const [deletedLike] = await Promise.all([
+                LikeModel.findOneAndDelete({ user: req.user._id }),
                 PostModel.updateOne({ _id: req.params.postId }, { $inc: { likes: -1 } })
             ]);
             return sendServerResponse(res, {
                 success: true,
                 statusCode: 201,
-                data: null,
+                data: deletedLike,
                 msg: 'Like removed successfully'
             });
         } catch (err) {
