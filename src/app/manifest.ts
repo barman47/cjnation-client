@@ -4,8 +4,9 @@ export default function manifest(): MetadataRoute.Manifest {
     return {
         name: 'CJNation Entertainment',
         short_name: 'CJNation Ent',
-        start_url: './',
+        start_url: '/',
         description: 'Explore limitless excitement at CJNationent, your premier entertainment destination. Dive into curated movies, diverse music, binge-worthy TV shows, and a comedy treasure trove. Stay in the know with celebrity buzz and upcoming events. Join us for a thrilling journey through the transformative power of entertainment. Let the show begin!',
+        id: '/',
         icons: [
             {
                 src: '/android-chrome-192x192.png',
