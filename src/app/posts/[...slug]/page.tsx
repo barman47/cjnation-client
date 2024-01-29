@@ -6,6 +6,7 @@ import CommentsForm from './CommentsForm';
 import CommentsList from './CommentsList';
 import { Metadata } from 'next';
 import { Post as PostData } from '@/interfaces';
+import { removeHtmlTags } from '@/utils/removeHtmlTags';
 
 export const dynamicParams = true; // Will generate a page if it does not exist. True is the default
 
@@ -22,7 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const post: PostData = data.data;
 
     const  title = post.title;
-    const  description = post.body.slice(0, 161);
+    const  description = removeHtmlTags(post.body.slice(0, 161));
    
     return {
         title: post.title,
