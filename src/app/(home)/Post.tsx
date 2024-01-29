@@ -14,8 +14,15 @@ import { capitalize } from '@/utils/capitalize';
 const useStyles = makeStyles()((theme: Theme) => ({
     root: {
         borderBottom: `1px solid ${LIGHT_GREY}`,
-        // minHeight: theme.spacing(36),
-        padding: theme.spacing(2, 0)
+        padding: theme.spacing(2, 0),
+        overflowX: 'clip'
+    },
+
+    content: {
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        gap: theme.spacing(2)
     },
 
     author: {
@@ -61,26 +68,23 @@ const useStyles = makeStyles()((theme: Theme) => ({
         }
     },
 
-    imageContainer: {
-        width: theme.spacing(250),
-        height: theme.spacing(25),
-        // height: '55%',
-        // width: '100%',
-
-        [theme.breakpoints.down('sm')]: {
-            width: theme.spacing(120),
-            height: theme.spacing(12)
-        }
-    },
-
     postImage: {
         borderRadius: '15px',
         objectPosition: 'center',
         objectFit: 'cover',
-        width: '100%',
-        height: '100%',
+        width: theme.spacing(60),
+        height: theme.spacing(30),
+        maxWidth: theme.spacing(60),
+        maxHeight: theme.spacing(30),
+
+        [theme.breakpoints.down('md')]: {
+            width: theme.spacing(40),
+            height: theme.spacing(20),
+        },
 
         [theme.breakpoints.down('sm')]: {
+            width: theme.spacing(20),
+            height: theme.spacing(20),
             borderRadius: '10px',
         }
     },
@@ -108,7 +112,7 @@ const Post: React.FC<Props> = ({ post }) => {
 
     return (
         <Stack direction="column" spacing={2} className={classes.root}>
-            <Stack direction="row" spacing={2} alignItems="flex-start">
+            <Box component="div" className={classes.content}>
                 <Stack direction="column" spacing={2}>
                     <Stack direction="row" alignItems="center" spacing={1}>
                         <Avatar src={typeof post.author === 'string' ? post.author : post.author.avatar!} />
@@ -121,7 +125,7 @@ const Post: React.FC<Props> = ({ post }) => {
                     </Typography>
                     <Typography variant="body1" paragraph className={classes.text}>{parse(post.body)}</Typography>
                 </Stack>
-                <Box component="div" className={classes.imageContainer}>
+                <Box component="div">
                     <Image 
                         src={post.mediaUrl!}
                         width={500}
@@ -131,7 +135,7 @@ const Post: React.FC<Props> = ({ post }) => {
                         priority
                     />
                 </Box>
-            </Stack>
+            </Box>
             <Stack direction="row" alignItems="center" spacing={1} justifyContent={matches ? 'space-between' : 'flex-start'} className={classes.footer}>
                 <Typography variant="subtitle1">{moment(post.createdAt).format('MMM Do, YYYY')}</Typography>
                 <Box component="div" className={classes.dot}></Box>
