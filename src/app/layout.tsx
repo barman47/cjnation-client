@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Analytics } from '@vercel/analytics/react';
 import { Inter } from 'next/font/google';
 
 import ThemeRegistry from './ThemeRegistry';
@@ -42,6 +43,7 @@ export default function RootLayout({
 						</ThemeRegistry>
 					</Providers>
 				</GoogleOAuthProvider>
+				<Analytics />
 			</body>
 		</html>
 	);
