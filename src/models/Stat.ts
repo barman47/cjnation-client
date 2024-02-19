@@ -2,7 +2,7 @@
 
 import { Document } from 'mongoose';
 
-// Define interface for Stat document
+// interface for Stat 
 export interface StatDocument extends Document {
   name: string;
   type: string;
