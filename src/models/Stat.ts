@@ -47,6 +47,6 @@ export class StatsManager {
   // Method to update UI (placeholder, you need to implement this according to your UI framework)
   private updateUI(userStat: StatDocument): void {
     console.log(`User ${userStat.name} has made a post.`);
-    // Implement code here to update UI with new statistics
+    
   }
 }
