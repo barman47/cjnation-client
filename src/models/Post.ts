@@ -1,8 +1,9 @@
 import { Document, Schema, Types, model } from 'mongoose';
-
 import { PostStatus } from '../utils/constants';
 import { generateSlug } from '../utils/generateSlug';
 import { generateReadDuration } from '../utils/generateReadDuration';
+import { StatsManager } from './Stat';
+
 
 export interface Post extends Document {
     category: Types.ObjectId | string;
@@ -126,5 +127,12 @@ PostSchema.index(
     }
 );
 
+// Create an instance of StatsManager
+const statsManager = new StatsManager();
+
+// Function to create a new post
+PostSchema.post('save', function(doc: Post) {
+    statsManager.updateStats(doc.author.toString()); // Update user statistics after saving a new post
+});
 
 export default model<Post>('Post', PostSchema);
