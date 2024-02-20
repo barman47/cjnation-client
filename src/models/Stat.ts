@@ -43,6 +43,7 @@ export class StatsManager {
   public getUserStats(userId: string): StatDocument | undefined {
     return this.userStats.find(stat => stat.name === userId);
   }
+  
 
   // Method to update UI (placeholder, you need to implement this according to your UI framework)
   private updateUI(userStat: StatDocument): void {
